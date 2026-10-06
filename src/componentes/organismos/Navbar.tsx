@@ -14,6 +14,23 @@ function Navbar() {
                 <div className="navbar-nav">
                     <Link className="nav-link" to="/productos">Productos</Link>
                 </div>
+
+                <div className="navbar-nav">
+                    <Link className="nav-link" to="/novedades">Novedades</Link>
+                </div>
+
+                <div className="navbar-nav">
+                    <Link className="nav-link" to="/nosotros">Nosotros</Link>
+                </div>
+                
+                <div className="navbar-nav">
+                    <Link className="nav-link" to="/contactanos">Contáctanos</Link>
+                </div>
+
+                <div className="navbar-nav">
+                    <Link className="nav-link" to="/registrate">Regístrate</Link>
+                </div>
+
             </div>
         </nav>
     )
