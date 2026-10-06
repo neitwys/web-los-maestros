@@ -1,75 +1,33 @@
-# React + TypeScript + Vite
+# Proyecto Web - Ferretería "Los Maestros"
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Repositorio oficial de la página web para la **Ferretería Los Maestros**, desarrollada con tecnologías modernas para ofrecer una experiencia rápida y fluida a los clientes.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tecnologías Utilizadas
 
-## React Compiler
+* **React** (con TypeScript)
+* **Vite** (como empaquetador y entorno de desarrollo)
+* **React Router DOM** (para la navegación entre páginas)
+* **Bootstrap** (para el diseño y componentes responsivos)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Estructura del Repositorio
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+La arquitectura del proyecto está organizada siguiendo principios de diseño modular y **Atomic Design**:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+```text
+/public                -> Archivos estáticos que no necesitan ser compilados.
+  /img                 -> Imágenes generales (PNG, JPEG, WEBP, etc.).
+/src                   -> Código fuente principal de la aplicación.
+  /assets              -> Recursos locales (iconos, gráficos, etc.).
+  /paginas             -> Vistas principales de la aplicación (archivos .tsx).
+    Inicio.tsx         -> Página principal (Home).
+    Productos.tsx      -> Catálogo de productos.
+  /componentes         -> Componentes reutilizables de la interfaz.
+    /atomos            -> Elementos básicos (botones, inputs, etc.).
+    /moleculas         -> Combinaciones de átomos (tarjetas de productos, barras de búsqueda).
+    /organismos        -> Secciones complejas (Navbar, Footer, etc.).
+  App.tsx              -> Componente principal y rutas.
+  main.tsx             -> Punto de entrada de React.
