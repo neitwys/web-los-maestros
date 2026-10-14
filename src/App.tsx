@@ -7,6 +7,7 @@ import Registrate from './paginas/Registrate'
 import Contactanos from './paginas/Contactanos'
 import Nosotros from './paginas/Nosotros'
 import Novedades from './paginas/Novedades'
+import DetalleProductos from './paginas/DetalleProductos'
 
 function App() {
     return (
@@ -22,6 +23,10 @@ function App() {
                     path="/productos"
                     element={<Productos />}
                 />
+                    <Route
+                        path="/producto/:id"
+                        element={<DetalleProductos />}
+                    />
                 <Route
                     path="/novedades"
                     element={<Novedades />}
@@ -38,6 +43,7 @@ function App() {
                     path="/registrate"
                     element={<Registrate />}
                 />
+                
                 
             </Routes>
         </>
