@@ -1,40 +1,39 @@
 import Boton from "../atomos/Boton";
 
-interface CardProps {
-    codigo: string;
-    nombre: string;
-    categoria: string;
-    subcategoria: string;
-    marca: string;
-    precio: number;
-    stock: number;
-    unidad: string;
-    descripcion: string;
-    imagen: string;
+interface CardProductoProps {
+  id: string;
+  titulo: string;
+  categoria: string;
+  descripcion: string;
+  precio: number;
+  imagen: string;
 }
 
-function CardProducto({ codigo, nombre, categoria, 
-                        subcategoria, marca, precio, 
-                        stock, unidad, descripcion, imagen }: CardProps) {
-    return (
-        <div className="card" style={{ width: '21rem' }}>
-            <img 
-                src={imagen} 
-                className="card-img-top" 
-                alt={nombre} 
-                style={{ height: '200px', objectFit: 'contain' }}
-            />
+function CardProducto({ id, titulo, categoria, descripcion, precio, imagen }: CardProductoProps) {
+  // Asegura que la ruta comience con '/' si proviene de la carpeta public
+  const rutaImagen = imagen.startsWith('/') ? imagen : `/${imagen}`;
 
-            <div className="card-body" d-flex flex-column>
-                <h5 className="card-title">{nombre}</h5>
-                <p className="card-text">{descripcion}</p>
-                <p className="card-text"><strong>Marca:</strong> {marca}</p>
-                <p className="card-text"><strong>Categoría:</strong> {categoria} - {subcategoria}</p>
-                <p className="card-text"><strong>Precio:</strong> ${precio.toLocaleString('es-CL')} por {unidad}</p>
-                <p className="card-text"><strong>Stock:</strong> {stock} unidades</p>
-                <div className="mt-auto"> <Boton id={codigo} /> </div>
-            </div>
+  return (
+    <div className="card h-100 shadow-sm">
+      <img 
+        src={rutaImagen} 
+        className="card-img-top card-producto-img p-3" 
+        alt={titulo} 
+        style={{ height: '200px', objectFit: 'contain' }}
+      />
+      <div className="card-body d-flex flex-column">
+        <small className="text-uppercase text-muted fw-bold">{categoria}</small>
+        <h5 className="card-title my-2">{titulo}</h5>
+        <p className="card-text text-secondary small flex-grow-1">{descripcion}</p>
+        <p className="texto-precio fs-5 fw-bold text-primary mt-auto">
+          ${precio.toLocaleString("es-CL")}
+        </p>
+        <div className="mt-2">
+          <Boton id={id} />
         </div>
-    )
+      </div>
+    </div>
+  );
 }
-export default CardProducto
+
+export default CardProducto;

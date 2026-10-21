@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import productos from "../data/ProductosData";
+import { productosData as productos } from "../data/productosData";
 import BotonVolver from "../componentes/atomos/BotonVolver";
 
 function DetalleProductos() {
@@ -21,7 +21,7 @@ function DetalleProductos() {
 
             <h2>{producto.nombre}</h2>
             <p>{producto.descripcion}</p>
-            <p>${producto.precioVenta.toLocaleString('es-CL')}</p>
+            <p>${producto.precio.toLocaleString('es-CL')}</p>
             
             <div className="mt-auto">
                 <BotonVolver/>
