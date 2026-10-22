@@ -12,8 +12,7 @@ export interface Producto {
   imagen: string;
 }
 
-// Un producto nuevo todavía no tiene id: lo asigna esta misma fuente de datos al crearlo
-export type ProductoNuevo = Omit<Producto, "id">;
+
 
 export const productosData: Producto[] = [
   // --- CATEGORÍA: MAT. CONSTRUCCIÓN ---
@@ -1136,66 +1135,3 @@ export const productosData: Producto[] = [
     imagen: "img/rastrillo.webp"
   }
 ];
- 
-// Fuente de datos simulada en memoria
-let productos: Producto[] = [...productosData];
-
-/**
- * READ: Obtiene todos los productos del catálogo
- */
-export function obtenerProductos(): Producto[] {
-  return [...productos];
-}
-
-/**
- * READ: Obtiene un producto por su ID (o código)
- */
-export function obtenerProductoPorId(id: string): Producto | undefined {
-  return productos.find((p) => p.id === id || p.codigo === id);
-}
-
-/**
- * CREATE: Agrega un nuevo producto a la ferretería
- * Genera automáticamente un ID con formato FER-001, FER-002, etc.
- */
-export function crearProducto(datos: ProductoNuevo): Producto {
-  const correlativo = productos.length + 1;
-  const nuevoId = `FER-${String(correlativo).padStart(3, '0')}`;
-  
-  const nuevoProducto: Producto = {
-    ...datos,
-    id: nuevoId,
-    codigo: datos.codigo || nuevoId,
-  };
-
-  productos = [...productos, nuevoProducto];
-  return nuevoProducto;
-}
-
-/**
- * UPDATE: Actualiza los campos de un producto existente
- */
-export function actualizarProducto(id: string, cambios: Partial<ProductoNuevo>): Producto | undefined {
-  const existente = obtenerProductoPorId(id);
-  if (!existente) return undefined;
-
-  const actualizado: Producto = { ...existente, ...cambios };
-  productos = productos.map((p) => (p.id === id ? actualizado : p));
-  return actualizado;
-}
-
-/**
- * DELETE: Elimina un producto por su ID
- */
-export function eliminarProducto(id: string): boolean {
-  const totalAntes = productos.length;
-  productos = productos.filter((p) => p.id !== id);
-  return productos.length < totalAntes;
-}
-
-/**
- * RESET: Restablece los productos al estado inicial (Útil para Vitest/Tests)
- */
-export function reiniciarProductos(): void {
-  productos = [...productosData];
-}

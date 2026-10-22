@@ -1,39 +1,60 @@
-import { Link } from "react-router-dom"
+import { NavLink, Link } from "react-router-dom";
+
+const enlaces = [
+    { ruta: "/", texto: "Inicio" },
+    { ruta: "/productos", texto: "Productos" },
+    { ruta: "/novedades", texto: "Novedades" },
+    { ruta: "/nosotros", texto: "Nosotros" },
+    { ruta: "/contactanos", texto: "Contáctanos" },
+];
 
 function Navbar() {
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+        <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom border-warning border-3">
             <div className="container">
-                <span className="navbar-brand">Los Maestros</span>
-            
+                <Link className="navbar-brand d-flex align-items-center" to="/">
+                    <img src="/img/logo_no_fondo.png" alt="Ferretería Los Maestros" height="60" />
+                </Link>
 
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/">Inicio</Link>
-                </div>
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#menuPrincipal"
+                    aria-controls="menuPrincipal"
+                    aria-expanded="false"
+                    aria-label="Abrir menú"
+                >
+                    <span className="navbar-toggler-icon"></span>
+                </button>
 
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/productos">Productos</Link>
-                </div>
+                <div className="collapse navbar-collapse" id="menuPrincipal">
+                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        {enlaces.map((enlace) => (
+                            <li className="nav-item" key={enlace.ruta}>
+                                <NavLink
+                                    className={({ isActive }) => `nav-link${isActive ? " active fw-bold" : ""}`}
+                                    to={enlace.ruta}
+                                    end={enlace.ruta === "/"}
+                                >
+                                    {enlace.texto}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
 
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/novedades">Novedades</Link>
+                    <div className="d-flex gap-2">
+                        <Link className="btn btn-outline-dark btn-sm" to="/login">
+                            <i className="bi bi-person me-1"></i>Iniciar sesión
+                        </Link>
+                        <Link className="btn btn-warning btn-sm fw-bold" to="/registrate">
+                            Regístrate
+                        </Link>
+                    </div>
                 </div>
-
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/nosotros">Nosotros</Link>
-                </div>
-                
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/contactanos">Contáctanos</Link>
-                </div>
-
-                <div className="navbar-nav">
-                    <Link className="nav-link" to="/registrate">Regístrate</Link>
-                </div>
-
             </div>
         </nav>
-    )
+    );
 }
 
-export default Navbar
+export default Navbar;

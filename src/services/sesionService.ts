@@ -1,0 +1,55 @@
+import type { RolUsuario } from "../data/usuariosData";
+import { errorClave } from "../utils/validaciones";
+
+export interface Sesion {
+  correo: string;
+  rol: RolUsuario;
+  fecha: string; // Fecha y hora de inicio de sesión (formato ISO)
+}
+
+export type ResultadoLogin =
+  | { ok: true; sesion: Sesion }
+  | { ok: false; error: string };
+
+const CLAVE_STORAGE = "sesionActiva";
+export const CORREO_ADMIN = "admin@losmaestros.cl";
+const CLAVE_ADMIN = "1234";
+
+/** Inicia sesión según las reglas de la tienda y guarda la sesión en localStorage. */
+export function iniciarSesion(correo: string, clave: string): ResultadoLogin {
+  const correoLimpio = correo.trim().toLowerCase();
+  const claveLimpia = clave.trim();
+
+  let rol: RolUsuario = "Cliente";
+
+  if (correoLimpio === CORREO_ADMIN) {
+    if (claveLimpia !== CLAVE_ADMIN) {
+      return { ok: false, error: "Contraseña de administrador incorrecta." };
+    }
+    rol = "Administrador";
+  } else {
+    const error = errorClave(claveLimpia);
+    if (error !== "") return { ok: false, error };
+  }
+
+  const sesion: Sesion = { correo: correoLimpio, rol, fecha: new Date().toISOString() };
+  localStorage.setItem(CLAVE_STORAGE, JSON.stringify(sesion));
+  return { ok: true, sesion };
+}
+
+/** Devuelve la sesión activa, o null si no hay sesión (o los datos guardados están dañados). */
+export function obtenerSesion(): Sesion | null {
+  const guardada = localStorage.getItem(CLAVE_STORAGE);
+  if (!guardada) return null;
+
+  try {
+    return JSON.parse(guardada) as Sesion;
+  } catch {
+    return null;
+  }
+}
+
+/** Cierra la sesión eliminando los datos guardados. */
+export function cerrarSesion(): void {
+  localStorage.removeItem(CLAVE_STORAGE);
+}
