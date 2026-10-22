@@ -92,3 +92,31 @@ export function errorMensaje(valor: string): string {
 export function errorTerminos(aceptado: boolean): string {
   return aceptado ? "" : "Debes aceptar los términos para registrarte.";
 }
+
+
+/* ===== Validaciones de productos (zona admin) ===== */
+
+/** Campo de texto obligatorio con largo máximo. "etiqueta" es el nombre del campo en el mensaje. */
+export function errorTextoObligatorio(valor: string, etiqueta: string, max: number): string {
+  const texto = valor.trim();
+  if (texto === "") return `El campo "${etiqueta}" es obligatorio.`;
+  if (texto.length > max) return `El campo "${etiqueta}" no puede superar los ${max} caracteres.`;
+  return "";
+}
+
+/** El precio debe ser un número entero mayor que 0 (pesos chilenos, sin decimales). */
+export function errorPrecio(valor: string): string {
+  const precio = valor.trim();
+  if (precio === "") return "El precio es obligatorio.";
+  if (!/^[0-9]+$/.test(precio)) return "El precio debe ser un número entero, sin puntos ni signos.";
+  if (Number(precio) <= 0) return "El precio debe ser mayor que 0.";
+  return "";
+}
+
+/** El stock debe ser un número entero igual o mayor que 0. */
+export function errorStock(valor: string): string {
+  const stock = valor.trim();
+  if (stock === "") return "El stock es obligatorio.";
+  if (!/^[0-9]+$/.test(stock)) return "El stock debe ser un número entero igual o mayor que 0.";
+  return "";
+}

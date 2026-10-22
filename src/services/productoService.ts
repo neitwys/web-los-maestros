@@ -12,14 +12,28 @@ export function obtenerProductoPorId(id: string): Producto | undefined {
   return productos.find((p) => p.id === id || p.codigo === id);
 }
 
+
+function generarId(): string {
+  const mayor = productos.reduce((max, p) => {
+    const coincidencia = /^FER-(\d+)$/.exec(p.id);
+    return coincidencia ? Math.max(max, Number(coincidencia[1])) : max;
+  }, 0);
+  return `FER-${String(mayor + 1).padStart(3, '0')}`;
+}
+
 export function crearProducto(datos: ProductoNuevo): Producto {
-  const correlativo = productos.length + 1;
-  const nuevoId = `FER-${String(correlativo).padStart(3, '0')}`;
-  
+  const codigoIngresado = datos.codigo.trim();
+
+  if (codigoIngresado !== '' && obtenerProductoPorId(codigoIngresado)) {
+    throw new Error('Ya existe un producto con ese código.');
+  }
+
+  const nuevoId = generarId();
+
   const nuevoProducto: Producto = {
     ...datos,
     id: nuevoId,
-    codigo: datos.codigo || nuevoId,
+    codigo: codigoIngresado || nuevoId,
   };
 
   productos = [...productos, nuevoProducto];
