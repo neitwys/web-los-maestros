@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import './App.css'
 import Navbar from './componentes/organismos/Navbar'
+import Footer from './componentes/organismos/Footer'
 import Inicio from './paginas/Inicio'
 import Productos from './paginas/Productos'
 import DetalleProductos from './paginas/DetalleProductos'
@@ -12,7 +13,7 @@ import Login from './paginas/Login'
 
 function App() {
     return (
-        <>
+        <div className="d-flex flex-column min-vh-100">
             <Navbar/>
 
             <Routes>
@@ -25,7 +26,9 @@ function App() {
                 <Route path="/registrate" element={<Registrate />} />
                 <Route path="/login" element={<Login />} />
             </Routes>
-        </>
+
+            <Footer />
+        </div>
     )
 }
 
