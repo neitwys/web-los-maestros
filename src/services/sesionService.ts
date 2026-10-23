@@ -8,9 +8,10 @@ export interface Sesion {
 }
 
 export type ResultadoLogin =
-  | { ok: true; sesion: Sesion }
-  | { ok: false; error: string };
+  | { ok: true; sesion: Sesion; error?: string }
+  | { ok: false; error: string; sesion?: Sesion };
 
+  
 const CLAVE_STORAGE = "sesionActiva";
 export const CORREO_ADMIN = "admin@losmaestros.cl";
 const CLAVE_ADMIN = "1234";
