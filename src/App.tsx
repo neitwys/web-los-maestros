@@ -14,6 +14,7 @@ import AdminInicio from './paginas/AdminInicio'
 import AdminProductos from './paginas/AdminProductos'
 import AdminUsuario from './paginas/AdminUsuario'
 import RutaProtegida from './componentes/organismos/RutaProtegida'
+import Calculadora from './paginas/Calculadora'
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/" element={<Inicio />} />
                 <Route path="/productos" element={<Productos />} />
                 <Route path="/producto/:id" element={<DetalleProductos />} />
+                <Route path="/calculadora" element={<Calculadora/>} />
                 <Route path="/novedades" element={<Novedades />} />
                 <Route path="/nosotros" element={<Nosotros />} />
                 <Route path="/contactanos" element={<Contactanos />} />
