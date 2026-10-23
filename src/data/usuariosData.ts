@@ -1,18 +1,18 @@
 export type RolUsuario = "Administrador" | "Cliente";
 
 export interface Usuario {
-  run: string;          // Identificador único del usuario (sin puntos ni guion)
+  run: string;          
   nombre: string;
   apellidos: string;
   correo: string;
   rol: RolUsuario;
-  fechaNac?: string;    // Opcional, formato AAAA-MM-DD
+  fechaNac?: string;    
   region: string;
   comuna: string;
   direccion: string;
 }
 
-// Usuarios iniciales de la tienda (el CRUD vive en services/usuarioService.ts)
+
 export const usuariosData: Usuario[] = [
   {
     run: "111111111",

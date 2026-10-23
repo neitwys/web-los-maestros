@@ -10,7 +10,7 @@ interface CardProductoProps {
 }
 
 function CardProducto({ id, titulo, categoria, descripcion, precio, imagen }: CardProductoProps) {
-  // Asegura que la ruta comience con '/' si proviene de la carpeta public
+
   const rutaImagen = imagen.startsWith('/') ? imagen : `/${imagen}`;
 
   return (

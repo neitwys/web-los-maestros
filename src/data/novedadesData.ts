@@ -7,14 +7,14 @@ export interface Novedad {
   id: number;
   titulo: string;
   categoria: string;
-  colorCategoria: "warning" | "danger" | "success"; // Color Bootstrap de la etiqueta
-  fecha: string;              // Fecha corta para la tarjeta
-  fechaPublicacion: string;   // Fecha larga para el detalle
+  colorCategoria: "warning" | "danger" | "success"; 
+  fecha: string;              
+  fechaPublicacion: string;   
   resumen: string;
   imagen: string;
-  secciones: SeccionNovedad[]; // Contenido del artículo completo
+  secciones: SeccionNovedad[]; 
   textoEnlace: string;
-  rutaEnlace: string;          // Ruta interna de React Router
+  rutaEnlace: string;          
 }
 
 export const novedadesData: Novedad[] = [

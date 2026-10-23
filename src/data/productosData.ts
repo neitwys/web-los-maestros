@@ -15,7 +15,7 @@ export interface Producto {
 
 
 export const productosData: Producto[] = [
-  // --- CATEGORÍA: MAT. CONSTRUCCIÓN ---
+ 
   {
     id: "MC001",
     codigo: "MC001",

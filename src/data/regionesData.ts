@@ -3,7 +3,7 @@ export interface Region {
   comunas: string[];
 }
 
-// Regiones y comunas disponibles en el formulario de usuarios (zona admin)
+
 export const regionesData: Region[] = [
   {
     region: "Metropolitana de Santiago",

@@ -10,13 +10,12 @@ interface CampoFormularioProps {
   placeholder?: string;
   maxLength?: number;
   filas?: number;
-  error?: string;            // Mensaje de error. Si viene vacío, el campo se ve normal
-  obligatorio?: boolean;     // Agrega el asterisco (*) a la etiqueta
-  mostrarContador?: boolean; // Muestra "0/50" (necesita maxLength)
+  error?: string;            
+  obligatorio?: boolean;     
+  mostrarContador?: boolean; 
   deshabilitado?: boolean;
 }
 
-// Molécula: etiqueta + campo (átomo Input) + mensaje de error + contador opcional.
 function CampoFormulario({
   id,
   etiqueta,
