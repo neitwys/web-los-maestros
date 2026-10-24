@@ -19,7 +19,7 @@ export const regionesData: Region[] = [
   },
 ];
 
-/** Devuelve las comunas de una región, o un arreglo vacío si no existe. */
+
 export function obtenerComunas(nombreRegion: string): string[] {
   const encontrada = regionesData.find((r) => r.region === nombreRegion);
   return encontrada ? encontrada.comunas : [];

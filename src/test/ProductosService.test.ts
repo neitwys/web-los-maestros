@@ -10,14 +10,12 @@ import {
 } from '../services/productoService';
 
 describe('Pruebas unitarias para productoService', () => {
-  // Reiniciamos el estado del catálogo antes de cada prueba para evitar interferencias
+  
   beforeEach(() => {
     reiniciarProductos();
   });
 
-  // -------------------------------------------------------------
-  // 1. OBTENER PRODUCTOS
-  // -------------------------------------------------------------
+ 
   describe('obtenerProductos', () => {
     it('Devuelve la lista inicial de productos', () => {
       const productos = obtenerProductos();
@@ -34,9 +32,7 @@ describe('Pruebas unitarias para productoService', () => {
     });
   });
 
-  // -------------------------------------------------------------
-  // 2. OBTENER PRODUCTO POR ID O CÓDIGO
-  // -------------------------------------------------------------
+
   describe('obtenerProductoPorId', () => {
     it('Encuentra un producto por su id', () => {
       const producto = obtenerProductoPorId('MC001');
@@ -56,9 +52,7 @@ describe('Pruebas unitarias para productoService', () => {
     });
   });
 
-  // -------------------------------------------------------------
-  // 3. CREAR PRODUCTO
-  // -------------------------------------------------------------
+  
   describe('crearProducto', () => {
     const nuevoProductoDatos: ProductoNuevo = {
       codigo: 'PNT-100',
@@ -86,11 +80,11 @@ describe('Pruebas unitarias para productoService', () => {
     });
 
     it('Genera un ID incremental cuando ya existen IDs con prefijo FER-', () => {
-      crearProducto(nuevoProductoDatos); // FER-001
+      crearProducto(nuevoProductoDatos); 
       const segundo = crearProducto({
         ...nuevoProductoDatos,
         codigo: 'PNT-101',
-      }); // FER-002
+      }); 
 
       expect(segundo.id).toBe('FER-002');
     });
