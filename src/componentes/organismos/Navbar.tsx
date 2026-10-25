@@ -1,4 +1,12 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+    calcularCantidadCarrito,
+    calcularTotalCarrito,
+    EVENTO_CARRITO,
+    obtenerCarrito,
+} from "../../services/carritoService";
+import { cerrarSesion, EVENTO_SESION, obtenerSesion, type Sesion } from "../../services/sesionService";
 
 const enlaces = [
     { ruta: "/", texto: "Inicio" },
@@ -10,6 +18,27 @@ const enlaces = [
 ];
 
 function Navbar() {
+    const navigate = useNavigate();
+    const [carrito, setCarrito] = useState(() => obtenerCarrito());
+    const [sesion, setSesion] = useState<Sesion | null>(() => obtenerSesion());
+
+    useEffect(() => {
+        const actualizar = () => setCarrito(obtenerCarrito());
+        window.addEventListener(EVENTO_CARRITO, actualizar);
+        return () => window.removeEventListener(EVENTO_CARRITO, actualizar);
+    }, []);
+
+    useEffect(() => {
+        const actualizarSesion = () => setSesion(obtenerSesion());
+        window.addEventListener(EVENTO_SESION, actualizarSesion);
+        return () => window.removeEventListener(EVENTO_SESION, actualizarSesion);
+    }, []);
+
+    const cerrar = () => {
+        cerrarSesion();
+        navigate("/", { replace: true });
+    };
+
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom border-warning border-3">
             <div className="container">
@@ -44,12 +73,35 @@ function Navbar() {
                         ))}
                     </ul>
 
-                    <div className="d-flex gap-2">
-                        <Link className="btn btn-outline-dark btn-sm" to="/login">
-                            <i className="bi bi-person me-1"></i>Iniciar sesión
-                        </Link>
-                        <Link className="btn btn-warning btn-sm fw-bold" to="/registrate">
-                            Regístrate
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                        {sesion ? (
+                            <>
+                                <span className="navbar-text fw-semibold py-0">
+                                    Hola, {sesion.nombre || sesion.correo}
+                                </span>
+                                {sesion.rol === "Administrador" && (
+                                    <Link className="btn btn-outline-dark btn-sm" to="/admin">
+                                        Panel admin
+                                    </Link>
+                                )}
+                                <button type="button" className="btn btn-outline-secondary btn-sm" onClick={cerrar}>
+                                    Cerrar sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link className="btn btn-outline-dark btn-sm" to="/login">
+                                    <i className="bi bi-person me-1"></i>Iniciar sesión
+                                </Link>
+                                <Link className="btn btn-warning btn-sm fw-bold" to="/registrate">
+                                    Regístrate
+                                </Link>
+                            </>
+                        )}
+                        <Link className="btn btn-outline-success btn-sm fw-bold" to="/carrito">
+                            <i className="bi bi-cart3 me-1"></i>
+                            Carrito ({calcularCantidadCarrito(carrito)}) · $
+                            {calcularTotalCarrito(carrito).toLocaleString("es-CL")}
                         </Link>
                     </div>
                 </div>

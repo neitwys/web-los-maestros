@@ -5,6 +5,7 @@ export interface Sesion {
   correo: string;
   rol: RolUsuario;
   fecha: string; // Fecha y hora de inicio de sesión (formato ISO)
+  nombre?: string;
 }
 
 export type ResultadoLogin =
@@ -13,6 +14,7 @@ export type ResultadoLogin =
 
   
 const CLAVE_STORAGE = "sesionActiva";
+export const EVENTO_SESION = "sesion-actualizada";
 export const CORREO_ADMIN = "admin@losmaestros.cl";
 const CLAVE_ADMIN = "1234";
 
@@ -33,8 +35,12 @@ export function iniciarSesion(correo: string, clave: string): ResultadoLogin {
     if (error !== "") return { ok: false, error };
   }
 
-  const sesion: Sesion = { correo: correoLimpio, rol, fecha: new Date().toISOString() };
+  const nombre = rol === "Administrador"
+    ? "Admin"
+    : correoLimpio.split("@")[0];
+  const sesion: Sesion = { correo: correoLimpio, rol, fecha: new Date().toISOString(), nombre };
   localStorage.setItem(CLAVE_STORAGE, JSON.stringify(sesion));
+  window.dispatchEvent(new CustomEvent(EVENTO_SESION));
   return { ok: true, sesion };
 }
 
@@ -53,4 +59,5 @@ export function obtenerSesion(): Sesion | null {
 /** Cierra la sesión eliminando los datos guardados. */
 export function cerrarSesion(): void {
   localStorage.removeItem(CLAVE_STORAGE);
+  window.dispatchEvent(new CustomEvent(EVENTO_SESION));
 }

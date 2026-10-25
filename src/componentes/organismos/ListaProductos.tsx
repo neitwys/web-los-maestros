@@ -19,7 +19,8 @@ function ListaProductos({ productos }: ListaProductosProps) {
       {productos.map((p) => (
         <div key={p.id} className="col-12 col-sm-6 col-lg-4">
           <CardProducto
-            id={p.id}
+          producto={p}
+          id={p.id}
             titulo={p.nombre}
             categoria={p.categoria}
             descripcion={p.descripcion}

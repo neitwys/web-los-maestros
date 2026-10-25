@@ -1,4 +1,6 @@
 import Boton from "../atomos/Boton";
+import { agregarAlCarrito } from "../../services/carritoService";
+import type { Producto } from "../../data/productosData";
 
 interface CardProductoProps {
   id: string;
@@ -7,9 +9,10 @@ interface CardProductoProps {
   descripcion: string;
   precio: number;
   imagen: string;
+  producto?: Producto;
 }
 
-function CardProducto({ id, titulo, categoria, descripcion, precio, imagen }: CardProductoProps) {
+function CardProducto({ id, titulo, categoria, descripcion, precio, imagen, producto }: CardProductoProps) {
 
   const rutaImagen = imagen.startsWith('/') ? imagen : `/${imagen}`;
 
@@ -30,6 +33,29 @@ function CardProducto({ id, titulo, categoria, descripcion, precio, imagen }: Ca
         </p>
         <div className="mt-2">
           <Boton id={id} />
+          <button
+            type="button"
+            className="btn btn-warning btn-sm w-100 mt-2 fw-bold"
+            onClick={() =>
+              agregarAlCarrito(
+                producto ?? {
+                  id,
+                  nombre: titulo,
+                  categoria,
+                  descripcion,
+                  precio,
+                  imagen,
+                  codigo: id,
+                  subcategoria: "",
+                  marca: "",
+                  stock: 0,
+                  unidad: "Unidad",
+                }
+              )
+            }
+          >
+            <i className="bi bi-cart-plus me-1"></i>Comprar
+          </button>
         </div>
       </div>
     </div>

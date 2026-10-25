@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CardProducto from '../componentes/moleculas/CardProducto';
+import { MemoryRouter } from 'react-router-dom';
 
 describe('Pruebas unitarias para <CardProducto />', () => {
   const propsSimuladas = {
@@ -21,8 +22,12 @@ describe('Pruebas unitarias para <CardProducto />', () => {
   });
 
   it('antepone "/" a la ruta de la imagen si esta no comienza con un slash', () => {
-    render(<CardProducto {...propsSimuladas} imagen="martillo.jpg" />);
-
+    render(
+    <MemoryRouter>
+      <CardProducto {...propsSimuladas} imagen="martillo.jpg" />;
+    </MemoryRouter>
+    );
+    
     const imagen = screen.getByAltText('Martillo de Carpintero 16oz') as HTMLImageElement;
     expect(imagen.getAttribute('src')).toBe('/martillo.jpg');
   });

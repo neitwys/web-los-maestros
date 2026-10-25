@@ -1,6 +1,8 @@
 export interface Diapositiva {
     imagen: string;
     alt: string;
+    imagenTablet?: string;
+    imagenMovil?: string;
 }
 
 interface HeroProps {
@@ -36,12 +38,16 @@ function Hero({ diapositivas, id = "carouselPrincipal", intervalo = 5000 }: Hero
                         className={`carousel-item${indice === 0 ? " active" : ""}`}
                         data-bs-interval={intervalo}
                     >
-                        <img
-                            src={d.imagen}
-                            alt={d.alt}
-                            className="d-block w-100"
-                            style={{ height: "520px", objectFit: "cover" }}
-                        />
+                        <picture>
+                            {d.imagenMovil && <source media="(max-width: 575.98px)" srcSet={d.imagenMovil} />}
+                            {d.imagenTablet && <source media="(max-width: 991.98px)" srcSet={d.imagenTablet} />}
+                            <img
+                                src={d.imagen}
+                                alt={d.alt}
+                                className="d-block w-100"
+                                style={{ height: "clamp(220px, 40vw, 520px)", objectFit: "cover" }}
+                            />
+                        </picture>
                     </div>
                 ))}
             </div>
