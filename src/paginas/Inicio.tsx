@@ -4,8 +4,18 @@ import CardProducto from "../componentes/moleculas/CardProducto";
 import { obtenerProductos } from "../services/productoService";
 
 const diapositivas: Diapositiva[] = [
-    { imagen: "/img/logo.png", alt: "Fachada Ferretería Los Maestros" },
-    { imagen: "/img/local fisico.png", alt: "Local físico de Ferretería Los Maestros" },
+    {
+        imagen: "/img/logo.png",
+        imagenTablet: "/img/logo.png",
+        imagenMovil: "/img/logo_no_fondo.png",
+        alt: "Fachada Ferretería Los Maestros",
+    },
+    {
+        imagen: "/img/local fisico.png",
+        imagenTablet: "/img/local fisico.png",
+        imagenMovil: "/img/imagen 2 carrusel.png",
+        alt: "Local físico de Ferretería Los Maestros",
+    },
 ];
 
 const CANTIDAD_DESTACADOS = 4;

@@ -22,21 +22,21 @@ const equipo = [
         rol: "Desarrollador Frontend",
         claseRol: "bg-secondary",
         descripcion: "Encargado de la maquetación HTML, diseño de vistas y componentes Bootstrap.",
-        imagen: "/img/josecastro1.png",
+        imagen: "/img/usuario.jpg",
     },
     {
         nombre: "Juan Carlos Hernández",
-        rol: "Programador JS",
+        rol: "Programador TypeScript",
         claseRol: "bg-warning text-dark",
         descripcion: "Lógica de filtrado de productos, validaciones de formularios y LocalStorage.",
-        imagen: "/img/juank.png",
+        imagen: "/img/usuario.jpg",
     },
     {
         nombre: "Sebastián Díaz",
         rol: "Diseñador UI/UX",
         claseRol: "bg-secondary",
         descripcion: "Estructura responsive, integración de marcas, estilos CSS y usabilidad.",
-        imagen: "/img/sebadiaz.png",
+        imagen: "/img/usuario.jpg",
     },
 ];
 

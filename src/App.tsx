@@ -15,6 +15,8 @@ import AdminProductos from './paginas/AdminProductos'
 import AdminUsuario from './paginas/AdminUsuario'
 import RutaProtegida from './componentes/organismos/RutaProtegida'
 import Calculadora from './paginas/Calculadora'
+import Carrito from './paginas/Carrito'
+import AdminCompras from './paginas/AdminCompras'
 
 function App() {
     return (
@@ -26,6 +28,7 @@ function App() {
                 <Route path="/productos" element={<Productos />} />
                 <Route path="/producto/:id" element={<DetalleProductos />} />
                 <Route path="/calculadora" element={<Calculadora/>} />
+                <Route path="/carrito" element={<Carrito />} />
                 <Route path="/novedades" element={<Novedades />} />
                 <Route path="/nosotros" element={<Nosotros />} />
                 <Route path="/contactanos" element={<Contactanos />} />
@@ -52,6 +55,14 @@ function App() {
                     element={
                         <RutaProtegida rolRequerido="Administrador">
                             <AdminUsuario />
+                        </RutaProtegida>
+                    }
+                />
+                <Route
+                    path="/admin/compras"
+                    element={
+                        <RutaProtegida rolRequerido="Administrador">
+                            <AdminCompras />
                         </RutaProtegida>
                     }
                 />
