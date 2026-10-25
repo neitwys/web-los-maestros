@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import CardProducto from '../componentes/moleculas/CardProducto';
-import { MemoryRouter } from 'react-router-dom';
 
 describe('Pruebas unitarias para <CardProducto />', () => {
   const propsDemo = {
