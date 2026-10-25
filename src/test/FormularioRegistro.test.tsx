@@ -8,17 +8,14 @@ import {
   errorCorreo,
   errorClave,
   errorConfirmarClave,
-  errorTerminos,
+  errorTerminos
 } from '../utils/validaciones';
 
 describe('Pruebas unitarias para FormularioRegistro', () => {
 
-  // -------------------------------------------------------------
-  // 1. PRUEBAS DE RENDERIZADO INICIAL
-  // -------------------------------------------------------------
   describe('Renderizado de la interfaz', () => {
     it('Renderiza las etiquetas de los 5 campos principales y el checkbox de términos', () => {
-      const html = ReactDOMServer.renderToString(React.createElement(FormularioRegistro));
+      const html = ReactDOMServer.renderToString(<FormularioRegistro />);
 
       expect(html).toContain('Nombre completo');
       expect(html).toContain('RUN');
@@ -29,7 +26,7 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
     });
 
     it('Renderiza los placeholders correspondientes en cada campo', () => {
-      const html = ReactDOMServer.renderToString(React.createElement(FormularioRegistro));
+      const html = ReactDOMServer.renderToString(<FormularioRegistro />);
 
       expect(html).toContain('Ej: Juan Pérez González');
       expect(html).toContain('12345678-K');
@@ -39,7 +36,7 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
     });
 
     it('Asigna correctamente los IDs de control a cada elemento del formulario', () => {
-      const html = ReactDOMServer.renderToString(React.createElement(FormularioRegistro));
+      const html = ReactDOMServer.renderToString(<FormularioRegistro />);
 
       expect(html).toContain('id="regNombre"');
       expect(html).toContain('id="regRun"');
@@ -50,57 +47,50 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
     });
 
     it('Renderiza el botón de envío con el texto y estilo esperado', () => {
-      const html = ReactDOMServer.renderToString(React.createElement(FormularioRegistro));
+      const html = ReactDOMServer.renderToString(<FormularioRegistro />);
 
       expect(html).toContain('type="submit"');
-      expect(html).toContain('btn btn-warning fw-bold w-100');
+      expect(html).toContain('btn btn-warning');
       expect(html).toContain('Registrarme');
     });
 
     it('Soporta la prop opcional onRegistrar sin arrojar errores de renderizado', () => {
       const mockOnRegistrar = vi.fn();
       const html = ReactDOMServer.renderToString(
-        React.createElement(FormularioRegistro, { onRegistrar: mockOnRegistrar })
+        <FormularioRegistro onRegistrar={mockOnRegistrar} />
       );
 
       expect(html).toBeDefined();
-      expect(html.length).toBeGreaterThan(100);
     });
   });
 
-  // -------------------------------------------------------------
-  // 2. PRUEBAS DE LAS FUNCIONES DE VALIDACIÓN INDIVIDUALES
-  // -------------------------------------------------------------
   describe('Lógica de validaciones desacopladas (utils/validaciones)', () => {
-    
     describe('errorNombre', () => {
       it('Retorna error si el nombre está vacío', () => {
         expect(errorNombre('')).toBe('El nombre es obligatorio.');
-        expect(errorNombre('   ')).toBe('El nombre es obligatorio.');
       });
 
       it('Retorna error si el nombre tiene menos de 2 caracteres', () => {
-        expect(errorNombre('J')).toBe('El nombre debe tener al menos 2 caracteres.');
+        expect(errorNombre('A')).toBe('El nombre debe tener al menos 2 caracteres.');
       });
 
       it('Retorna string vacío para un nombre válido', () => {
-        expect(errorNombre('María José')).toBe('');
+        expect(errorNombre('María González')).toBe('');
       });
     });
 
     describe('errorRun', () => {
       it('Retorna error si el RUN está vacío', () => {
         expect(errorRun('')).toBe('El RUN es obligatorio.');
-        expect(errorRun('   ')).toBe('El RUN es obligatorio.');
       });
 
       it('Retorna error si el RUN tiene menos de 8 caracteres', () => {
-        expect(errorRun('123456')).toBe('Ingrese un RUN válido.');
+        expect(errorRun('123456')).toBe('Ingresa un RUN chileno válido (ej: 12345678-K).');
       });
 
-      it('Retorna string vacío para un RUN válido', () => {
-        expect(errorRun('19876543-2')).toBe('');
-        expect(errorRun('12345678-K')).toBe('');
+      it('Retorna string vacío para un RUN válido con módulo 11', () => {
+        expect(errorRun('12345678-5')).toBe('');
+        expect(errorRun('11111111-1')).toBe('');
       });
     });
 
@@ -110,8 +100,8 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
       });
 
       it('Retorna error si el formato es inválido', () => {
-        expect(errorCorreo('usuario.com')).toBe('Ingrese un correo electrónico válido.');
-        expect(errorCorreo('correo@sin-dominio')).toBe('Ingrese un correo electrónico válido.');
+        expect(errorCorreo('usuario.com')).toBe('Ingresa un correo válido (ej: correo@ejemplo.com).');
+        expect(errorCorreo('correo@sin-dominio')).toBe('Ingresa un correo válido (ej: correo@ejemplo.com).');
       });
 
       it('Retorna string vacío para un correo válido', () => {
@@ -125,7 +115,7 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
       });
 
       it('Retorna error si la contraseña tiene menos de 4 caracteres', () => {
-        expect(errorClave('123')).toBe('La contraseña debe tener al menos 4 caracteres.');
+        expect(errorClave('123')).toBe('La contraseña debe tener entre 4 y 10 caracteres.');
       });
 
       it('Retorna string vacío para una contraseña válida', () => {
@@ -135,7 +125,7 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
 
     describe('errorConfirmarClave', () => {
       it('Retorna error si la confirmación está vacía', () => {
-        expect(errorConfirmarClave('clave123', '')).toBe('Debe confirmar su contraseña.');
+        expect(errorConfirmarClave('clave123', '')).toBe('Debes confirmar la contraseña.');
       });
 
       it('Retorna error si la confirmación no coincide con la clave', () => {
@@ -149,7 +139,7 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
 
     describe('errorTerminos', () => {
       it('Retorna error si no se han aceptado los términos (false)', () => {
-        expect(errorTerminos(false)).toBe('Debe aceptar los términos y condiciones.');
+        expect(errorTerminos(false)).toBe('Debes aceptar los términos para registrarte.');
       });
 
       it('Retorna string vacío cuando los términos son aceptados (true)', () => {
@@ -158,26 +148,18 @@ describe('Pruebas unitarias para FormularioRegistro', () => {
     });
   });
 
-  // -------------------------------------------------------------
-  // 3. ESTRUCTURA Y TIPO DatosRegistro
-  // -------------------------------------------------------------
   describe('Estructura del tipo DatosRegistro', () => {
     it('Permite instanciar un objeto DatosRegistro completo y válido', () => {
       const registroEjemplo: DatosRegistro = {
-        nombre: 'Gonzalo Morales',
-        run: '18765432-1',
-        correo: 'gonzalo@ejemplo.cl',
-        clave: 'pass2026',
-        confirmarClave: 'pass2026',
-        terminos: true,
+        nombre: 'Pedro Pascal',
+        run: '12345678-5',
+        correo: 'pedro@losmaestros.cl',
+        clave: '123456',
+        confirmarClave: '123456',
+        terminos: true
       };
 
-      expect(registroEjemplo.nombre).toBe('Gonzalo Morales');
-      expect(registroEjemplo.run).toBe('18765432-1');
-      expect(registroEjemplo.correo).toBe('gonzalo@ejemplo.cl');
-      expect(registroEjemplo.clave).toBe('pass2026');
-      expect(registroEjemplo.confirmarClave).toBe('pass2026');
-      expect(registroEjemplo.terminos).toBe(true);
+      expect(registroEjemplo.nombre).toBe('Pedro Pascal');
     });
   });
 

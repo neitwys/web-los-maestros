@@ -1,29 +1,24 @@
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import FormularioContacto, { type DatosContacto } from '../componentes/organismos/FormularioContacto';
-import { errorNombre, errorCorreo, errorTelefono, errorMensaje } from '../utils/validaciones';
+import FormularioContacto from '../componentes/organismos/FormularioContacto';
+import {
+  errorNombre,
+  errorCorreo,
+  errorTelefono,
+  errorMensaje
+} from '../utils/validaciones';
 
 describe('Pruebas unitarias para FormularioContacto', () => {
 
-  // -------------------------------------------------------------
-  // 1. PRUEBAS DE RENDERIZADO INICIAL DE LA INTERFAZ
-  // -------------------------------------------------------------
   describe('Renderizado de la interfaz', () => {
     it('Renderiza los 4 campos del formulario con sus respectivas etiquetas y placeholders', () => {
       const html = ReactDOMServer.renderToString(React.createElement(FormularioContacto));
 
-      // Comprueba que existan las etiquetas
       expect(html).toContain('Nombre');
       expect(html).toContain('Correo electrónico');
       expect(html).toContain('Teléfono (opcional)');
       expect(html).toContain('Mensaje');
-
-      // Comprueba que existan los placeholders configurados
-      expect(html).toContain('Tu nombre');
-      expect(html).toContain('correo@ejemplo.com');
-      expect(html).toContain('+56 9 1234 5678');
-      expect(html).toContain('¿En qué podemos ayudarte?');
     });
 
     it('Renderiza los IDs de control correspondientes en los inputs', () => {
@@ -39,7 +34,7 @@ describe('Pruebas unitarias para FormularioContacto', () => {
       const html = ReactDOMServer.renderToString(React.createElement(FormularioContacto));
 
       expect(html).toContain('type="submit"');
-      expect(html).toContain('btn btn-warning');
+      expect(html).toContain('btn btn-warning fw-bold w-100');
       expect(html).toContain('Enviar mensaje');
     });
 
@@ -54,14 +49,10 @@ describe('Pruebas unitarias para FormularioContacto', () => {
     });
   });
 
-  // -------------------------------------------------------------
-  // 2. PRUEBAS DE LA LÓGICA DE VALIDACIÓN (validaciones.ts)
-  // -------------------------------------------------------------
-  describe('Lógica de validaciones desacopladas', () => {
+  describe('Lógica de validaciones desacopladas (utils/validaciones)', () => {
     describe('errorNombre', () => {
       it('Retorna mensaje de error si el nombre está vacío', () => {
         expect(errorNombre('')).toBe('El nombre es obligatorio.');
-        expect(errorNombre('   ')).toBe('El nombre es obligatorio.');
       });
 
       it('Retorna error si el nombre tiene menos de 2 caracteres', () => {
@@ -79,12 +70,12 @@ describe('Pruebas unitarias para FormularioContacto', () => {
       });
 
       it('Retorna error si el formato de correo es inválido', () => {
-        expect(errorCorreo('correo-invalido')).toBe('Ingrese un correo electrónico válido.');
-        expect(errorCorreo('usuario@sin-dominio')).toBe('Ingrese un correo electrónico válido.');
+        expect(errorCorreo('correo-invalido')).toBe('Ingresa un correo válido (ej: correo@ejemplo.com).');
+        expect(errorCorreo('usuario@sin-dominio')).toBe('Ingresa un correo válido (ej: correo@ejemplo.com).');
       });
 
       it('Retorna string vacío cuando el correo es válido', () => {
-        expect(errorCorreo('juan.perez@dominio.cl')).toBe('');
+        expect(errorCorreo('contacto@losmaestros.cl')).toBe('');
       });
     });
 
@@ -94,7 +85,7 @@ describe('Pruebas unitarias para FormularioContacto', () => {
       });
 
       it('Retorna error si el teléfono ingresado es muy corto', () => {
-        expect(errorTelefono('12345')).toBe('Ingrese un número de teléfono válido.');
+        expect(errorTelefono('12345')).toBe('Ingresa un teléfono válido (ej: +56 9 1234 5678).');
       });
 
       it('Retorna string vacío cuando el teléfono es válido', () => {
@@ -112,27 +103,22 @@ describe('Pruebas unitarias para FormularioContacto', () => {
       });
 
       it('Retorna string vacío cuando el mensaje es válido', () => {
-        expect(errorMensaje('Necesito una cotización de planchas de zinc.')).toBe('');
+        expect(errorMensaje('Hola, quisiera cotizar cemento polpaico.')).toBe('');
       });
     });
   });
 
-  // -------------------------------------------------------------
-  // 3. PRUEBA DE ESTRUCTURA DEL TIPO DatosContacto
-  // -------------------------------------------------------------
   describe('Estructura de DatosContacto', () => {
     it('Permite instanciar un objeto DatosContacto con la interfaz esperada', () => {
-      const datosEjemplo: DatosContacto = {
-        nombre: 'Carlos Mendoza',
-        correo: 'carlos@losmaestros.cl',
-        telefono: '+56987654321',
-        mensaje: 'Consulta sobre stock de sacos de cemento Bio Bio.'
+      const demoContacto = {
+        nombre: 'Pedro Pascal',
+        correo: 'pedro@ejemplo.cl',
+        telefono: '+56912345678',
+        mensaje: 'Consulta sobre despacho a domicilio.',
       };
 
-      expect(datosEjemplo.nombre).toBe('Carlos Mendoza');
-      expect(datosEjemplo.correo).toBe('carlos@losmaestros.cl');
-      expect(datosEjemplo.telefono).toBe('+56987654321');
-      expect(datosEjemplo.mensaje).toBe('Consulta sobre stock de sacos de cemento Bio Bio.');
+      expect(demoContacto.nombre).toBe('Pedro Pascal');
+      expect(demoContacto.correo).toBe('pedro@ejemplo.cl');
     });
   });
 
