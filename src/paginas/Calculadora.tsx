@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { productosData } from "../data/productosData";
 import type { Producto } from "../data/productosData";
 import ResultadoCalculoCard from "../componentes/moleculas/CardCalculo";
+import { agregarAlCarrito, obtenerCarrito } from "../services/carritoService";
 
 type TipoCalculo = "pintura" | "mortero" | "ladrillos" | "osb" | "antihumedad" | "nivelador";
 
@@ -84,15 +85,10 @@ export function Calculadora() {
   };
 
   const agregarALista = (prod: Producto, cantidad: number) => {
-    const seleccionados = JSON.parse(
-      localStorage.getItem("miListaSeleccion") || localStorage.getItem("carrito") || "[]"
-    );
-    const existe = seleccionados.some((item: any) => item.id === prod.id || item.codigo === prod.codigo);
+    const existe = obtenerCarrito().some((item) => item.id === prod.id);
 
     if (!existe) {
-      seleccionados.push({ ...prod, cantidad });
-      localStorage.setItem("miListaSeleccion", JSON.stringify(seleccionados));
-      localStorage.setItem("carrito", JSON.stringify(seleccionados));
+      agregarAlCarrito(prod, cantidad);
       alert(`Se agregaron ${cantidad} unidad(es) de "${prod.nombre}" a tu lista.`);
     } else {
       alert("El producto ya se encuentra en tu lista de selección.");
