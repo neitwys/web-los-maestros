@@ -5,6 +5,7 @@ import {
   cerrarSesion,
   CORREO_ADMIN,
 } from '../services/sesionService';
+import { crearUsuario, reiniciarUsuarios } from '../services/usuarioService';
 
 
 const storageMock = (() => {
@@ -33,6 +34,29 @@ if (typeof globalThis.localStorage === 'undefined') {
 describe('Pruebas unitarias para sesionService', () => {
   beforeEach(() => {
     localStorage.clear();
+    reiniciarUsuarios();
+    crearUsuario({
+      run: '222222222',
+      nombre: 'Cliente',
+      apellidos: 'De Prueba',
+      correo: 'cliente@ejemplo.cl',
+      clave: 'miClave123',
+      rol: 'Cliente',
+      region: 'Metropolitana de Santiago',
+      comuna: 'Santiago',
+      direccion: 'Av. de Prueba 123',
+    });
+    crearUsuario({
+      run: '333333333',
+      nombre: 'Usuario',
+      apellidos: 'De Prueba',
+      correo: 'usuario@test.cl',
+      clave: 'clave123',
+      rol: 'Cliente',
+      region: 'Metropolitana de Santiago',
+      comuna: 'Santiago',
+      direccion: 'Av. de Prueba 456',
+    });
   });
 
   describe('iniciarSesion', () => {

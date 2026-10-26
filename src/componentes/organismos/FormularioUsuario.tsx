@@ -3,7 +3,13 @@ import CampoFormulario from "../moleculas/CampoFormulario";
 import CampoSelect from "../moleculas/CampoSelect";
 import type { RolUsuario, Usuario } from "../../data/usuariosData";
 import { obtenerComunas, regionesData } from "../../data/regionesData";
-import { errorCorreo, errorNombre, errorRun, errorTextoObligatorio } from "../../utils/validaciones";
+import {
+  errorClave,
+  errorCorreo,
+  errorNombre,
+  errorRun,
+  errorTextoObligatorio,
+} from "../../utils/validaciones";
 
 interface FormularioUsuarioProps {
   usuario?: Usuario;                       // Si viene, el formulario está en modo edición
@@ -16,6 +22,7 @@ interface Valores {
   nombre: string;
   apellidos: string;
   correo: string;
+  clave: string;
   rol: string;
   fechaNac: string;
   region: string;
@@ -30,7 +37,7 @@ const ROLES: RolUsuario[] = ["Administrador", "Cliente"];
 const NOMBRES_REGIONES = regionesData.map((r) => r.region);
 
 const valoresVacios: Valores = {
-  run: "", nombre: "", apellidos: "", correo: "", rol: "",
+  run: "", nombre: "", apellidos: "", correo: "", clave: "", rol: "",
   fechaNac: "", region: "", comuna: "", direccion: "",
 };
 
@@ -38,7 +45,7 @@ const sinErrores: Errores = { ...valoresVacios };
 
 function desdeUsuario(u?: Usuario): Valores {
   if (!u) return valoresVacios;
-  return { ...u, fechaNac: u.fechaNac ?? "" };
+  return { ...u, clave: "", fechaNac: u.fechaNac ?? "" };
 }
 
 // La fecha de nacimiento es opcional, pero si se ingresa no puede ser futura
@@ -48,7 +55,7 @@ function errorFechaNac(valor: string): string {
   return valor > hoy ? "La fecha de nacimiento no puede ser futura." : "";
 }
 
-function calcularError(campo: Campo, v: Valores): string {
+function calcularError(campo: Campo, v: Valores, editando: boolean): string {
   switch (campo) {
     case "run":
       return errorRun(v.run);
@@ -58,6 +65,8 @@ function calcularError(campo: Campo, v: Valores): string {
       return errorTextoObligatorio(v.apellidos, "Apellidos", 100);
     case "correo":
       return errorCorreo(v.correo);
+    case "clave":
+      return !editando ? errorClave(v.clave) : v.clave === "" ? "" : errorClave(v.clave);
     case "rol":
       return errorTextoObligatorio(v.rol, "Rol", 20);
     case "fechaNac":
@@ -80,7 +89,7 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
   const [hayErrores, setHayErrores] = useState(false);
 
   const validarCampo = (campo: Campo, actuales: Valores = valores) => {
-    setErrores((previo) => ({ ...previo, [campo]: calcularError(campo, actuales) }));
+    setErrores((previo) => ({ ...previo, [campo]: calcularError(campo, actuales, editando) }));
   };
 
   const cambiarCampo = (campo: Campo, valor: string) => {
@@ -101,7 +110,7 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
     const campos = Object.keys(valoresVacios) as Campo[];
     const nuevosErrores = { ...sinErrores };
     campos.forEach((campo) => {
-      nuevosErrores[campo] = calcularError(campo, valores);
+      nuevosErrores[campo] = calcularError(campo, valores, editando);
     });
     setErrores(nuevosErrores);
 
@@ -115,6 +124,7 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
       nombre: valores.nombre.trim(),
       apellidos: valores.apellidos.trim(),
       correo: valores.correo.trim().toLowerCase(),
+      ...(valores.clave !== "" ? { clave: valores.clave.trim() } : {}),
       rol: valores.rol as RolUsuario,
       region: valores.region,
       comuna: valores.comuna,
@@ -164,6 +174,15 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
           <CampoFormulario {...campo("fechaNac")} etiqueta="Fecha de nacimiento (opcional)" tipo="date" />
         </div>
       </div>
+
+      <CampoFormulario
+        {...campo("clave")}
+        etiqueta={editando ? "Nueva contraseña (opcional)" : "Contraseña"}
+        tipo="password"
+        placeholder={editando ? "Dejar vacío para conservarla" : "4 a 10 caracteres"}
+        maxLength={10}
+        obligatorio={!editando}
+      />
 
       <div className="row">
         <div className="col-12 col-md-6">

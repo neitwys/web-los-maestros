@@ -6,6 +6,7 @@ import {
   iniciarSesion,
   type Sesion
 } from '../services/sesionService';
+import { crearUsuario, reiniciarUsuarios } from '../services/usuarioService';
 import { errorCorreo, errorClave } from '../utils/validaciones';
 
 const storageMock = (() => {
@@ -35,6 +36,18 @@ describe('Pruebas unitarias para FormularioLogin', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    reiniciarUsuarios();
+    crearUsuario({
+      run: '222222222',
+      nombre: 'Cliente',
+      apellidos: 'De Prueba',
+      correo: 'cliente@ejemplo.cl',
+      clave: '123456',
+      rol: 'Cliente',
+      region: 'Metropolitana de Santiago',
+      comuna: 'Santiago',
+      direccion: 'Av. de Prueba 123',
+    });
   });
 
   describe('Renderizado de la interfaz', () => {

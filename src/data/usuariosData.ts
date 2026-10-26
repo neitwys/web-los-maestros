@@ -5,6 +5,7 @@ export interface Usuario {
   nombre: string;
   apellidos: string;
   correo: string;
+  clave?: string;
   rol: RolUsuario;
   fechaNac?: string;    
   region: string;
@@ -19,6 +20,7 @@ export const usuariosData: Usuario[] = [
     nombre: "Admin",
     apellidos: "Los Maestros",
     correo: "admin@losmaestros.cl",
+    clave: "1234",
     rol: "Administrador",
     region: "Metropolitana de Santiago",
     comuna: "Santiago",

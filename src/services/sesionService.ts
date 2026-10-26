@@ -1,4 +1,5 @@
 import type { RolUsuario } from "../data/usuariosData";
+import { obtenerUsuarios } from "./usuarioService";
 import { errorClave } from "../utils/validaciones";
 
 export interface Sesion {
@@ -33,11 +34,16 @@ export function iniciarSesion(correo: string, clave: string): ResultadoLogin {
   } else {
     const error = errorClave(claveLimpia);
     if (error !== "") return { ok: false, error };
+
+    const usuario = obtenerUsuarios().find((u) => u.correo.toLowerCase() === correoLimpio);
+    if (!usuario || usuario.clave !== claveLimpia) {
+      return { ok: false, error: "Correo o contraseña incorrectos." };
+    }
+    rol = usuario.rol;
   }
 
-  const nombre = rol === "Administrador"
-    ? "Admin"
-    : correoLimpio.split("@")[0];
+  const usuario = obtenerUsuarios().find((u) => u.correo.toLowerCase() === correoLimpio);
+  const nombre = rol === "Administrador" ? "Admin" : usuario?.nombre ?? correoLimpio.split("@")[0];
   const sesion: Sesion = { correo: correoLimpio, rol, fecha: new Date().toISOString(), nombre };
   localStorage.setItem(CLAVE_STORAGE, JSON.stringify(sesion));
   window.dispatchEvent(new CustomEvent(EVENTO_SESION));
