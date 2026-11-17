@@ -1,6 +1,24 @@
-import FormularioContacto from "../componentes/organismos/FormularioContacto";
+import FormularioContacto, { type DatosContacto } from "../componentes/organismos/FormularioContacto";
 
 function Contactanos() {
+    const enviarMensaje = async (datos: DatosContacto) => {
+    const respuesta = await fetch("http://localhost:8084/mensajes/crear", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            nombre: datos.nombre.trim(),
+            correo: datos.correo.trim(),
+            telefono: datos.telefono.trim() || null,
+            mensaje: datos.mensaje.trim(),
+        }),
+    });
+
+    if (!respuesta.ok) {
+        throw new Error(`Error HTTP ${respuesta.status}`);
+    }
+    };
     return (
         <main className="container py-5">
             <div className="row g-4 justify-content-center">
@@ -14,7 +32,7 @@ function Contactanos() {
                             Escríbenos y nuestro equipo te responderá a la brevedad.
                         </p>
 
-                        <FormularioContacto />
+                        <FormularioContacto onEnviar={enviarMensaje} />
                     </div>
                 </div>
 

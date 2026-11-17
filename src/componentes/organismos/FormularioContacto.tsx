@@ -11,7 +11,7 @@ export interface DatosContacto {
 
 interface FormularioContactoProps {
   // Se llama solo cuando todos los campos son válidos. La página decide qué hacer con los datos.
-  onEnviar?: (datos: DatosContacto) => void;
+  onEnviar?: (datos: DatosContacto) => Promise<void> | void;
 }
 
 type Campo = keyof DatosContacto;
@@ -29,7 +29,7 @@ const vacio: DatosContacto = { nombre: "", correo: "", telefono: "", mensaje: ""
 function FormularioContacto({ onEnviar }: FormularioContactoProps) {
   const [datos, setDatos] = useState<DatosContacto>(vacio);
   const [errores, setErrores] = useState<DatosContacto>(vacio);
-  const [estado, setEstado] = useState<"inicial" | "error" | "exito">("inicial");
+  const [estado, setEstado] = useState<"inicial" | "enviando" | "error" | "errorServidor" | "exito">("inicial");
 
   // Valida un solo campo y guarda su mensaje de error ("" si está correcto)
   const validarCampo = (campo: Campo, valor: string) => {
@@ -43,8 +43,9 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
     if (errores[campo] !== "") validarCampo(campo, valor);
   };
 
-  const enviar = (e: React.FormEvent<HTMLFormElement>) => {
+  const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (estado === "enviando") return;
 
     const nuevosErrores: DatosContacto = {
       nombre: errorNombre(datos.nombre),
@@ -60,9 +61,15 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
       return;
     }
 
-    onEnviar?.(datos);
-    setDatos(vacio);
-    setEstado("exito");
+    try {
+      setEstado("enviando");
+      await onEnviar?.(datos);
+      setDatos(vacio);
+      setEstado("exito");
+    } catch (error) {
+      console.error("Error al enviar el mensaje:", error);
+      setEstado("errorServidor");
+    }
   };
 
   return (
@@ -74,7 +81,7 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
         onCambiar={(v) => cambiarCampo("nombre", v)}
         onBlur={() => validarCampo("nombre", datos.nombre)}
         placeholder="Tu nombre"
-        maxLength={50}
+        maxLength={255}
         error={errores.nombre}
         obligatorio
       />
@@ -87,7 +94,7 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
         onCambiar={(v) => cambiarCampo("correo", v)}
         onBlur={() => validarCampo("correo", datos.correo)}
         placeholder="correo@ejemplo.com"
-        maxLength={100}
+        maxLength={255}
         error={errores.correo}
         obligatorio
       />
@@ -100,7 +107,7 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
         onCambiar={(v) => cambiarCampo("telefono", v)}
         onBlur={() => validarCampo("telefono", datos.telefono)}
         placeholder="+56 9 1234 5678"
-        maxLength={12}
+        maxLength={20}
         error={errores.telefono}
       />
 
@@ -123,14 +130,23 @@ function FormularioContacto({ onEnviar }: FormularioContactoProps) {
           Por favor verifica los campos resaltados en rojo.
         </div>
       )}
+      {estado === "errorServidor" && (
+        <div className="alert alert-danger" role="alert">
+          No se pudo enviar el mensaje. Intenta nuevamente más tarde.
+        </div>
+      )}
       {estado === "exito" && (
         <div className="alert alert-success" role="alert">
           ¡Mensaje enviado con éxito! Te responderemos a la brevedad.
         </div>
       )}
 
-      <button type="submit" className="btn btn-warning fw-bold w-100">
-        Enviar mensaje
+      <button
+        type="submit"
+        className="btn btn-warning fw-bold w-100"
+        disabled={estado === "enviando"}
+      >
+        {estado === "enviando" ? "Enviando..." : "Enviar mensaje"}
       </button>
     </form>
   );
