@@ -103,6 +103,6 @@ export const novedadesData: Novedad[] = [
       },
     ],
     textoEnlace: "Consultar Disponibilidad",
-    rutaEnlace: "/contacto",
+    rutaEnlace: "/contactanos",
   },
 ];

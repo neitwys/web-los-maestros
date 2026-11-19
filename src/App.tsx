@@ -17,6 +17,7 @@ import RutaProtegida from './componentes/organismos/RutaProtegida'
 import Calculadora from './paginas/Calculadora'
 import Carrito from './paginas/Carrito'
 import AdminCompras from './paginas/AdminCompras'
+import NoEncontrada from './paginas/NoEncontrada'
 
 function App() {
     return (
@@ -66,6 +67,7 @@ function App() {
                         </RutaProtegida>
                     }
                 />
+                <Route path="*" element={<NoEncontrada />} />
             </Routes>
 
             <Footer />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { productosData } from "../data/productosData";
 import type { Producto } from "../data/productosData";
+import { obtenerProductos } from "../services/productoService";
 import ResultadoCalculoCard from "../componentes/moleculas/CardCalculo";
 import { agregarAlCarrito, obtenerCarrito } from "../services/carritoService";
 
@@ -15,18 +15,20 @@ export function Calculadora() {
     totalCLP: number;
     detalles: string;
   } | null>(null);
+  const [mensajeError, setMensajeError] = useState<string>("");
 
   const calcular = (e: React.FormEvent) => {
     e.preventDefault();
     if (metrosCuadrados <= 0) return;
 
+    const catalogo = obtenerProductos();
     let prod: Producto | undefined;
     let unidades = 0;
     let detalles = "";
 
     switch (tipoCalculo) {
       case "pintura":
-        prod = productosData.find((p) => p.id === "PT001");
+        prod = catalogo.find((p) => p.id === "PT001");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 35);
           detalles = `Para pintar ${metrosCuadrados} m² a 2 manos, necesitas aprox. ${unidades} galón(es).`;
@@ -34,7 +36,7 @@ export function Calculadora() {
         break;
 
       case "mortero":
-        prod = productosData.find((p) => p.id === "MC003");
+        prod = catalogo.find((p) => p.id === "MC003");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 5);
           detalles = `Para pegar cerámica en ${metrosCuadrados} m², necesitas aprox. ${unidades} saco(s) de mortero cola.`;
@@ -42,7 +44,7 @@ export function Calculadora() {
         break;
 
       case "ladrillos":
-        prod = productosData.find((p) => p.id === "MC007");
+        prod = catalogo.find((p) => p.id === "MC007");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados * 38);
           detalles = `Para un muro de ${metrosCuadrados} m², necesitas aprox. ${unidades} unidades de ladrillo fiscal.`;
@@ -50,7 +52,7 @@ export function Calculadora() {
         break;
 
       case "osb":
-        prod = productosData.find((p) => p.id === "MD005");
+        prod = catalogo.find((p) => p.id === "MD005");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 2.97);
           detalles = `Para cubrir ${metrosCuadrados} m² de muro o tabique, necesitas aprox. ${unidades} plancha(s) de OSB.`;
@@ -58,7 +60,7 @@ export function Calculadora() {
         break;
 
       case "antihumedad":
-        prod = productosData.find((p) => p.id === "PT006");
+        prod = catalogo.find((p) => p.id === "PT006");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 25);
           detalles = `Para impermeabilizar o proteger ${metrosCuadrados} m², necesitas aprox. ${unidades} galón(es).`;
@@ -66,7 +68,7 @@ export function Calculadora() {
         break;
 
       case "nivelador":
-        prod = productosData.find((p) => p.id === "MC004");
+        prod = catalogo.find((p) => p.id === "MC004");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 3);
           detalles = `Para nivelar ${metrosCuadrados} m² de piso, necesitas aprox. ${unidades} saco(s) de mortero nivelador.`;
@@ -75,12 +77,16 @@ export function Calculadora() {
     }
 
     if (prod) {
+      setMensajeError("");
       setResultado({
         producto: prod,
         unidades,
         totalCLP: unidades * prod.precio,
         detalles,
       });
+    } else {
+      setResultado(null);
+      setMensajeError("No encontramos el producto necesario para este cálculo en el catálogo. Puede que haya sido modificado o eliminado.");
     }
   };
 
@@ -118,6 +124,7 @@ export function Calculadora() {
                 onChange={(e) => {
                   setTipoCalculo(e.target.value as TipoCalculo);
                   setResultado(null);
+                  setMensajeError("");
                 }}
               >
                 <option value="pintura">Pintar Paredes (Pintura Látex)</option>
@@ -150,6 +157,12 @@ export function Calculadora() {
               </button>
             </div>
           </form>
+
+          {mensajeError && (
+            <div className="alert alert-warning mt-4 mb-0" role="alert">
+              {mensajeError}
+            </div>
+          )}
 
           {resultado && (
             <ResultadoCalculoCard
