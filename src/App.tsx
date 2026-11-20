@@ -16,7 +16,6 @@ import AdminUsuario from './paginas/AdminUsuario'
 import RutaProtegida from './componentes/organismos/RutaProtegida'
 import Calculadora from './paginas/Calculadora'
 import Carrito from './paginas/Carrito'
-import AdminCompras from './paginas/AdminCompras'
 import NoEncontrada from './paginas/NoEncontrada'
 
 function App() {
@@ -29,7 +28,14 @@ function App() {
                 <Route path="/productos" element={<Productos />} />
                 <Route path="/producto/:id" element={<DetalleProductos />} />
                 <Route path="/calculadora" element={<Calculadora/>} />
-                <Route path="/carrito" element={<Carrito />} />
+                <Route
+                    path="/carrito"
+                    element={
+                        <RutaProtegida>
+                            <Carrito />
+                        </RutaProtegida>
+                    }
+                />
                 <Route path="/novedades" element={<Novedades />} />
                 <Route path="/nosotros" element={<Nosotros />} />
                 <Route path="/contactanos" element={<Contactanos />} />
@@ -38,7 +44,7 @@ function App() {
                 <Route
                     path="/admin"
                     element={
-                        <RutaProtegida rolRequerido="Administrador">
+                        <RutaProtegida rolRequerido="ADMIN">
                             <AdminInicio />
                         </RutaProtegida>
                     }
@@ -46,7 +52,7 @@ function App() {
                 <Route
                     path="/admin/productos"
                     element={
-                        <RutaProtegida rolRequerido="Administrador">
+                        <RutaProtegida rolRequerido="ADMIN">
                             <AdminProductos />
                         </RutaProtegida>
                     }
@@ -54,16 +60,8 @@ function App() {
                 <Route
                     path="/admin/usuarios"
                     element={
-                        <RutaProtegida rolRequerido="Administrador">
+                        <RutaProtegida rolRequerido="ADMIN">
                             <AdminUsuario />
-                        </RutaProtegida>
-                    }
-                />
-                <Route
-                    path="/admin/compras"
-                    element={
-                        <RutaProtegida rolRequerido="Administrador">
-                            <AdminCompras />
                         </RutaProtegida>
                     }
                 />

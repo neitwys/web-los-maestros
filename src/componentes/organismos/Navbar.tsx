@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
     calcularCantidadCarrito,
     calcularTotalCarrito,
+    cargarCarrito,
     EVENTO_CARRITO,
     obtenerCarrito,
 } from "../../services/carritoService";
@@ -33,6 +34,10 @@ function Navbar() {
         window.addEventListener(EVENTO_SESION, actualizarSesion);
         return () => window.removeEventListener(EVENTO_SESION, actualizarSesion);
     }, []);
+
+    useEffect(() => {
+        cargarCarrito().catch(() => undefined);
+    }, [sesion]);
 
     const cerrar = () => {
         cerrarSesion();
@@ -79,7 +84,7 @@ function Navbar() {
                                 <span className="navbar-text fw-semibold py-0">
                                     Hola, {sesion.nombre || sesion.correo}
                                 </span>
-                                {sesion.rol === "Administrador" && (
+                                {sesion.rol === "ADMIN" && (
                                     <Link className="btn btn-outline-dark btn-sm" to="/admin">
                                         Panel admin
                                     </Link>

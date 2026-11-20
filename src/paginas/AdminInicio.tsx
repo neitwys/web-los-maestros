@@ -1,16 +1,24 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { obtenerProductos } from "../services/productoService";
 import { obtenerUsuarios } from "../services/usuarioService";
 import { cerrarSesion, obtenerSesion } from "../services/sesionService";
-import { obtenerCompras } from "../services/compraService";
 
 function AdminInicio() {
     const navigate = useNavigate();
     const sesion = obtenerSesion();
 
-    const totalProductos = obtenerProductos().length;
-    const totalUsuarios = obtenerUsuarios().length;
-    const totalCompras = obtenerCompras().length;
+    const [totalProductos, setTotalProductos] = useState(0);
+    const [totalUsuarios, setTotalUsuarios] = useState(0);
+
+    useEffect(() => {
+        obtenerProductos()
+            .then((datos) => setTotalProductos(datos.length))
+            .catch(() => setTotalProductos(0));
+        obtenerUsuarios()
+            .then((datos) => setTotalUsuarios(datos.length))
+            .catch(() => setTotalUsuarios(0));
+    }, []);
 
     const salir = () => {
         cerrarSesion();
@@ -29,12 +37,6 @@ function AdminInicio() {
             icono: "bi-people",
             titulo: "Gestión de usuarios",
             detalle: `${totalUsuarios} usuarios registrados`,
-        },
-        {
-            ruta: "/admin/compras",
-            icono: "bi-receipt",
-            titulo: "Compras realizadas",
-            detalle: `${totalCompras} compras registradas`,
         },
     ];
 

@@ -1,10 +1,25 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import type { Producto } from "../data/productosData";
 import { obtenerProductoPorId } from "../services/productoService";
 import BotonVolver from "../componentes/atomos/BotonVolver";
 
 function DetalleProductos() {
     const { id } = useParams();
-    const producto = id ? obtenerProductoPorId(id) : undefined;
+    const [producto, setProducto] = useState<Producto | undefined>();
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        if (!id) return;
+        obtenerProductoPorId(id)
+            .then(setProducto)
+            .catch(() => setProducto(undefined))
+            .finally(() => setCargando(false));
+    }, [id]);
+
+    if (cargando && id) {
+        return <div className="container py-5 text-center">Cargando producto...</div>;
+    }
 
     if (!producto) {
         return (

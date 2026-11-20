@@ -1,13 +1,16 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormularioLogin from "../componentes/organismos/FormularioLogin";
 import type { Sesion } from "../services/sesionService";
 
 function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const aviso = (location.state as { mensaje?: string; desde?: string } | null)?.mensaje;
+    const desde = (location.state as { mensaje?: string; desde?: string } | null)?.desde;
 
     // El formulario solo avisa que el ingreso fue válido; la página decide adónde ir según el rol
     const alIngresar = (sesion: Sesion) => {
-        navigate(sesion.rol === "Administrador" ? "/admin" : "/");
+        navigate(sesion.rol === "ADMIN" ? "/admin" : (desde ?? "/"));
     };
 
     return (
@@ -22,6 +25,15 @@ function Login() {
                                 Ingresa con tu correo y contraseña para continuar.
                             </p>
                         </div>
+
+                        {aviso && (
+                            <div className="alert alert-warning small" role="alert">
+                                {aviso}{" "}
+                                <Link to="/registrate" className="alert-link">
+                                    Crear una cuenta
+                                </Link>
+                            </div>
+                        )}
 
                         <FormularioLogin prefijoId="pagLogin" onIngresar={alIngresar} />
 

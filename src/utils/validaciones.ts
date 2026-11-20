@@ -63,7 +63,7 @@ export function errorCorreo(valor: string): string {
 export function errorClave(valor: string): string {
   const clave = valor.trim();
   if (clave === "") return "La contraseña es obligatoria.";
-  if (clave.length < 4 || clave.length > 10) return "La contraseña debe tener entre 4 y 10 caracteres.";
+  if (clave.length < 6 || clave.length > 50) return "La contraseña debe tener entre 6 y 50 caracteres.";
   return "";
 }
 
@@ -79,6 +79,11 @@ export function errorTelefono(valor: string): string {
   if (telefono === "") return "";
   if (!/^\+?[0-9]{8,11}$/.test(telefono)) return "Ingresa un teléfono válido (ej: +56 9 1234 5678).";
   return "";
+}
+
+export function errorTelefonoObligatorio(valor: string): string {
+  if (valor.replace(/\s/g, "") === "") return "El teléfono es obligatorio.";
+  return errorTelefono(valor);
 }
 
 export function errorMensaje(valor: string): string {

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Producto } from "../data/productosData";
 import { obtenerProductos } from "../services/productoService";
 import ResultadoCalculoCard from "../componentes/moleculas/CardCalculo";
 import { agregarAlCarrito, obtenerCarrito } from "../services/carritoService";
+import { obtenerSesion } from "../services/sesionService";
 
 type TipoCalculo = "pintura" | "mortero" | "ladrillos" | "osb" | "antihumedad" | "nivelador";
 
 export function Calculadora() {
+  const navigate = useNavigate();
   const [tipoCalculo, setTipoCalculo] = useState<TipoCalculo>("pintura");
   const [metrosCuadrados, setMetrosCuadrados] = useState<number>(10);
   const [resultado, setResultado] = useState<{
@@ -17,18 +20,25 @@ export function Calculadora() {
   } | null>(null);
   const [mensajeError, setMensajeError] = useState<string>("");
 
-  const calcular = (e: React.FormEvent) => {
+  const calcular = async (e: React.FormEvent) => {
     e.preventDefault();
     if (metrosCuadrados <= 0) return;
 
-    const catalogo = obtenerProductos();
+    let catalogo: Producto[];
+    try {
+      catalogo = await obtenerProductos();
+    } catch {
+      setResultado(null);
+      setMensajeError("No se pudo cargar el catálogo. Intenta nuevamente.");
+      return;
+    }
     let prod: Producto | undefined;
     let unidades = 0;
     let detalles = "";
 
     switch (tipoCalculo) {
       case "pintura":
-        prod = catalogo.find((p) => p.id === "PT001");
+        prod = catalogo.find((p) => p.codigo === "PT001");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 35);
           detalles = `Para pintar ${metrosCuadrados} m² a 2 manos, necesitas aprox. ${unidades} galón(es).`;
@@ -36,7 +46,7 @@ export function Calculadora() {
         break;
 
       case "mortero":
-        prod = catalogo.find((p) => p.id === "MC003");
+        prod = catalogo.find((p) => p.codigo === "MC003");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 5);
           detalles = `Para pegar cerámica en ${metrosCuadrados} m², necesitas aprox. ${unidades} saco(s) de mortero cola.`;
@@ -44,7 +54,7 @@ export function Calculadora() {
         break;
 
       case "ladrillos":
-        prod = catalogo.find((p) => p.id === "MC007");
+        prod = catalogo.find((p) => p.codigo === "MC007");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados * 38);
           detalles = `Para un muro de ${metrosCuadrados} m², necesitas aprox. ${unidades} unidades de ladrillo fiscal.`;
@@ -52,7 +62,7 @@ export function Calculadora() {
         break;
 
       case "osb":
-        prod = catalogo.find((p) => p.id === "MD005");
+        prod = catalogo.find((p) => p.codigo === "MD005");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 2.97);
           detalles = `Para cubrir ${metrosCuadrados} m² de muro o tabique, necesitas aprox. ${unidades} plancha(s) de OSB.`;
@@ -60,7 +70,7 @@ export function Calculadora() {
         break;
 
       case "antihumedad":
-        prod = catalogo.find((p) => p.id === "PT006");
+        prod = catalogo.find((p) => p.codigo === "PT006");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 25);
           detalles = `Para impermeabilizar o proteger ${metrosCuadrados} m², necesitas aprox. ${unidades} galón(es).`;
@@ -68,7 +78,7 @@ export function Calculadora() {
         break;
 
       case "nivelador":
-        prod = catalogo.find((p) => p.id === "MC004");
+        prod = catalogo.find((p) => p.codigo === "MC004");
         if (prod) {
           unidades = Math.ceil(metrosCuadrados / 3);
           detalles = `Para nivelar ${metrosCuadrados} m² de piso, necesitas aprox. ${unidades} saco(s) de mortero nivelador.`;
@@ -90,14 +100,27 @@ export function Calculadora() {
     }
   };
 
-  const agregarALista = (prod: Producto, cantidad: number) => {
-    const existe = obtenerCarrito().some((item) => item.id === prod.id);
+  const agregarALista = async (prod: Producto, cantidad: number) => {
+    if (!obtenerSesion()) {
+      navigate("/login", {
+        state: {
+          mensaje: "Inicia sesión o crea tu cuenta para agregar productos al carrito.",
+          desde: "/calculadora",
+        },
+      });
+      return;
+    }
 
-    if (!existe) {
-      agregarAlCarrito(prod, cantidad);
-      alert(`Se agregaron ${cantidad} unidad(es) de "${prod.nombre}" a tu lista.`);
-    } else {
+    if (obtenerCarrito().some((item) => item.id === prod.id)) {
       alert("El producto ya se encuentra en tu lista de selección.");
+      return;
+    }
+
+    try {
+      await agregarAlCarrito(prod.id, cantidad);
+      alert(`Se agregaron ${cantidad} unidad(es) de "${prod.nombre}" a tu lista.`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "No se pudo agregar el producto.");
     }
   };
 

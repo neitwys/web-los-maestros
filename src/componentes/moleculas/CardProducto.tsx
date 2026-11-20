@@ -1,6 +1,7 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import Boton from "../atomos/Boton";
 import { agregarAlCarrito } from "../../services/carritoService";
-import type { Producto } from "../../data/productosData";
+import { obtenerSesion } from "../../services/sesionService";
 
 interface CardProductoProps {
   id: string;
@@ -9,12 +10,32 @@ interface CardProductoProps {
   descripcion: string;
   precio: number;
   imagen: string;
-  producto?: Producto;
+  unidad?: string;
 }
 
-function CardProducto({ id, titulo, categoria, descripcion, precio, imagen, producto }: CardProductoProps) {
+function CardProducto({ id, titulo, categoria, descripcion, precio, imagen, unidad }: CardProductoProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const rutaImagen = imagen.startsWith('/') ? imagen : `/${imagen}`;
+
+  const comprar = async () => {
+    if (!obtenerSesion()) {
+      navigate("/login", {
+        state: {
+          mensaje: "Inicia sesión o crea tu cuenta para agregar productos al carrito.",
+          desde: location.pathname,
+        },
+      });
+      return;
+    }
+
+    try {
+      await agregarAlCarrito(id);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "No se pudo agregar el producto.");
+    }
+  };
 
   return (
     <div className="card h-100 shadow-sm">
@@ -30,29 +51,14 @@ function CardProducto({ id, titulo, categoria, descripcion, precio, imagen, prod
         <p className="card-text text-secondary small flex-grow-1">{descripcion}</p>
         <p className="texto-precio fs-5 fw-bold text-primary mt-auto">
           ${precio.toLocaleString("es-CL")}
+          {unidad && <small className="text-muted fs-6 fw-normal"> / {unidad}</small>}
         </p>
         <div className="mt-2">
           <Boton id={id} />
           <button
             type="button"
             className="btn btn-warning btn-sm w-100 mt-2 fw-bold"
-            onClick={() =>
-              agregarAlCarrito(
-                producto ?? {
-                  id,
-                  nombre: titulo,
-                  categoria,
-                  descripcion,
-                  precio,
-                  imagen,
-                  codigo: id,
-                  subcategoria: "",
-                  marca: "",
-                  stock: 0,
-                  unidad: "Unidad",
-                }
-              )
-            }
+            onClick={comprar}
           >
             <i className="bi bi-cart-plus me-1"></i>Comprar
           </button>

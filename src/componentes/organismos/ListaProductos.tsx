@@ -19,13 +19,13 @@ function ListaProductos({ productos }: ListaProductosProps) {
       {productos.map((p) => (
         <div key={p.id} className="col-12 col-sm-6 col-lg-4">
           <CardProducto
-          producto={p}
           id={p.id}
             titulo={p.nombre}
             categoria={p.categoria}
             descripcion={p.descripcion}
             precio={p.precio}
             imagen={p.imagen}
+            unidad={p.unidad}
           />
         </div>
       ))}

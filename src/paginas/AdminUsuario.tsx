@@ -1,27 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TablaUsuarios from "../componentes/organismos/TablaUsuarios";
-import FormularioUsuario from "../componentes/organismos/FormularioUsuario";
+import FormularioUsuario, { type DatosUsuario } from "../componentes/organismos/FormularioUsuario";
 import type { Usuario } from "../data/usuariosData";
-import {
-    actualizarUsuario,
-    crearUsuario,
-    eliminarUsuario,
-    obtenerUsuarios,
-} from "../services/usuarioService";
+import { actualizarUsuario, eliminarUsuario, obtenerUsuarios, registrarUsuario } from "../services/usuarioService";
 import { obtenerSesion } from "../services/sesionService";
 
 type Modo = { tipo: "lista" } | { tipo: "crear" } | { tipo: "editar"; usuario: Usuario };
 type Aviso = { tipo: "success" | "danger"; texto: string };
 
 function AdminUsuario() {
-    const [usuarios, setUsuarios] = useState<Usuario[]>(() => obtenerUsuarios());
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [modo, setModo] = useState<Modo>({ tipo: "lista" });
     const [porEliminar, setPorEliminar] = useState<Usuario | null>(null);
     const [aviso, setAviso] = useState<Aviso | null>(null);
 
-    // Vuelve a leer la lista desde el servicio para que la tabla refleje el cambio
-    const refrescar = () => setUsuarios(obtenerUsuarios());
+    useEffect(() => {
+        obtenerUsuarios()
+            .then((datos) => setUsuarios(datos))
+            .catch((error) =>
+                setAviso({
+                    tipo: "danger",
+                    texto: error instanceof Error ? error.message : "No se pudieron cargar los usuarios.",
+                })
+            );
+    }, []);
+
+    const refrescar = async () => {
+        try {
+            const datos = await obtenerUsuarios();
+            setUsuarios(datos);
+        } catch (error) {
+            setAviso({
+                tipo: "danger",
+                texto: error instanceof Error ? error.message : "No se pudieron cargar los usuarios.",
+            });
+        }
+    };
 
     const abrirCrear = () => {
         setAviso(null);
@@ -37,29 +52,39 @@ function AdminUsuario() {
 
     const cerrarFormulario = () => setModo({ tipo: "lista" });
 
-    const guardar = (datos: Usuario) => {
+    const guardar = async (datos: DatosUsuario) => {
         try {
             if (modo.tipo === "editar") {
-                // El RUN no se modifica; fechaNac se pasa siempre para poder borrarla
-                const { run, ...resto } = datos;
-                const actualizado = actualizarUsuario(run, { ...resto, fechaNac: datos.fechaNac });
-                if (!actualizado) throw new Error("No se encontró el usuario a modificar.");
-                setAviso({ tipo: "success", texto: `Usuario "${actualizado.nombre} ${actualizado.apellidos}" actualizado correctamente.` });
+                await actualizarUsuario(modo.usuario.id, {
+                    nombre: datos.nombre,
+                    apellido: datos.apellido,
+                    telefono: datos.telefono,
+                });
+                setAviso({ tipo: "success", texto: `Usuario "${datos.nombre}" actualizado correctamente.` });
             } else {
-                const creado = crearUsuario(datos);
-                setAviso({ tipo: "success", texto: `Usuario "${creado.nombre} ${creado.apellidos}" creado correctamente.` });
+                await registrarUsuario({
+                    nombre: datos.nombre,
+                    apellido: datos.apellido,
+                    run: datos.run,
+                    correo: datos.correo,
+                    contrasena: datos.clave,
+                    telefono: datos.telefono,
+                });
+                setAviso({ tipo: "success", texto: `Usuario "${datos.nombre}" creado correctamente.` });
             }
-            refrescar();
             cerrarFormulario();
+            await refrescar();
         } catch (error) {
-            setAviso({ tipo: "danger", texto: error instanceof Error ? error.message : "No se pudo guardar el usuario." });
+            setAviso({
+                tipo: "danger",
+                texto: error instanceof Error ? error.message : "No se pudo guardar el usuario.",
+            });
         }
     };
 
     const pedirConfirmacion = (usuario: Usuario) => {
         cerrarFormulario();
 
-        // Regla: el administrador no puede eliminar la cuenta con la que tiene la sesión iniciada
         if (usuario.correo === obtenerSesion()?.correo) {
             setPorEliminar(null);
             setAviso({ tipo: "danger", texto: "No puedes eliminar tu propia cuenta mientras tienes la sesión iniciada." });
@@ -70,17 +95,22 @@ function AdminUsuario() {
         setPorEliminar(usuario);
     };
 
-    const confirmarEliminar = () => {
+    const confirmarEliminar = async () => {
         if (!porEliminar) return;
-        const nombre = `${porEliminar.nombre} ${porEliminar.apellidos}`;
-        const eliminado = eliminarUsuario(porEliminar.run);
-        setAviso(
-            eliminado
-                ? { tipo: "success", texto: `Usuario "${nombre}" eliminado.` }
-                : { tipo: "danger", texto: "No se pudo eliminar el usuario." }
-        );
-        setPorEliminar(null);
-        refrescar();
+        const usuario = porEliminar;
+        const nombre = usuario.apellido ? `${usuario.nombre} ${usuario.apellido}` : usuario.nombre;
+        try {
+            await eliminarUsuario(usuario.id);
+            setAviso({ tipo: "success", texto: `Usuario "${nombre}" eliminado.` });
+            await refrescar();
+        } catch (error) {
+            setAviso({
+                tipo: "danger",
+                texto: error instanceof Error ? error.message : "No se pudo eliminar el usuario.",
+            });
+        } finally {
+            setPorEliminar(null);
+        }
     };
 
     return (
@@ -106,7 +136,9 @@ function AdminUsuario() {
             {porEliminar && (
                 <div className="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2" role="alertdialog">
                     <span>
-                        ¿Seguro que quieres eliminar a <strong>{porEliminar.nombre} {porEliminar.apellidos}</strong>? Esta acción no se puede deshacer.
+                        ¿Seguro que quieres eliminar a{" "}
+                        <strong>{porEliminar.apellido ? `${porEliminar.nombre} ${porEliminar.apellido}` : porEliminar.nombre}</strong>?
+                        Esta acción no se puede deshacer.
                     </span>
                     <div className="d-flex gap-2">
                         <button type="button" className="btn btn-danger btn-sm" onClick={confirmarEliminar}>
@@ -122,11 +154,12 @@ function AdminUsuario() {
             {modo.tipo !== "lista" && (
                 <div className="bg-white p-4 rounded shadow-sm border mb-4">
                     <h2 className="h5 fw-bold mb-3">
-                        {modo.tipo === "editar" ? `Editar: ${modo.usuario.nombre} ${modo.usuario.apellidos}` : "Nuevo usuario"}
+                        {modo.tipo === "editar"
+                            ? `Editar: ${modo.usuario.apellido ? `${modo.usuario.nombre} ${modo.usuario.apellido}` : modo.usuario.nombre}`
+                            : "Nuevo usuario"}
                     </h2>
-                    {/* La key hace que el formulario se reinicie al cambiar de usuario */}
                     <FormularioUsuario
-                        key={modo.tipo === "editar" ? modo.usuario.run : "nuevo"}
+                        key={modo.tipo === "editar" ? modo.usuario.id : "nuevo"}
                         usuario={modo.tipo === "editar" ? modo.usuario : undefined}
                         onGuardar={guardar}
                         onCancelar={cerrarFormulario}

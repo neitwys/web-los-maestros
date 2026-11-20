@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import FormularioRegistro from "../componentes/organismos/FormularioRegistro";
+import FormularioRegistro, { type DatosRegistro } from "../componentes/organismos/FormularioRegistro";
+import { registrarUsuario } from "../services/usuarioService";
 
 function Registrate() {
     const navigate = useNavigate();
@@ -12,8 +13,15 @@ function Registrate() {
     }, []);
 
     // El formulario solo avisa que el registro fue válido; la página decide qué hacer después
-    const alRegistrar = () => {
-        temporizador.current = window.setTimeout(() => navigate("/"), 2000);
+    const alRegistrar = async (datos: DatosRegistro) => {
+        await registrarUsuario({
+            nombre: datos.nombre.trim(),
+            run: datos.run.trim(),
+            correo: datos.correo.trim(),
+            contrasena: datos.clave,
+            telefono: datos.telefono.trim(),
+        });
+        temporizador.current = window.setTimeout(() => navigate("/login"), 2000);
     };
 
     return (

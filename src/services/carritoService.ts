@@ -1,78 +1,98 @@
-import type { Producto } from "../data/productosData";
+import { llamarApi } from "./api";
+import { obtenerSesion } from "./sesionService";
 
-export interface ItemCarrito extends Producto {
+export interface ItemCarrito {
+  id: string;
+  nombre: string;
+  precio: number;
   cantidad: number;
 }
 
-const CLAVE_CARRITO = "carrito";
-export const EVENTO_CARRITO = "carrito-actualizado";
-
-function leerCarrito(): ItemCarrito[] {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const guardado = localStorage.getItem(CLAVE_CARRITO);
-    if (!guardado) return [];
-    const items: unknown = JSON.parse(guardado);
-    if (!Array.isArray(items)) return [];
-
-    return items.filter(
-      (item): item is ItemCarrito =>
-        typeof item === "object" &&
-        item !== null &&
-        "id" in item &&
-        "cantidad" in item &&
-        typeof item.cantidad === "number" &&
-        item.cantidad > 0
-    );
-  } catch {
-    return [];
-  }
+interface CarritoApi {
+  items: {
+    productoId: number;
+    nombreProducto: string;
+    precioUnitario: number;
+    cantidad: number;
+  }[];
 }
 
-function guardarCarrito(items: ItemCarrito[]): void {
-  localStorage.setItem(CLAVE_CARRITO, JSON.stringify(items));
+export const EVENTO_CARRITO = "carrito-actualizado";
+
+let carrito: ItemCarrito[] = [];
+let cola: Promise<unknown> = Promise.resolve();
+
+function enCola<T>(tarea: () => Promise<T>): Promise<T> {
+  const resultado = cola.then(tarea, tarea);
+  cola = resultado.catch(() => undefined);
+  return resultado;
+}
+
+function guardar(datos: CarritoApi): ItemCarrito[] {
+  carrito = datos.items.map((item) => ({
+    id: String(item.productoId),
+    nombre: item.nombreProducto,
+    precio: item.precioUnitario,
+    cantidad: item.cantidad,
+  }));
   window.dispatchEvent(new CustomEvent(EVENTO_CARRITO));
+  return carrito;
+}
+
+function rutaUsuario(): string {
+  const sesion = obtenerSesion();
+  if (!sesion) throw new Error("Debes iniciar sesión para usar el carrito.");
+  return `/carrito/carritos/usuario/${sesion.id}`;
 }
 
 export function obtenerCarrito(): ItemCarrito[] {
-  return leerCarrito();
+  return carrito;
 }
 
-export function agregarAlCarrito(producto: Producto, cantidad = 1): ItemCarrito[] {
-  const items = leerCarrito();
-  const existente = items.find((item) => item.id === producto.id);
-
-  if (existente) {
-    existente.cantidad += cantidad;
-  } else {
-    items.push({ ...producto, cantidad });
-  }
-
-  guardarCarrito(items);
-  return items;
+export async function cargarCarrito(): Promise<ItemCarrito[]> {
+  const sesion = obtenerSesion();
+  if (!sesion) return guardar({ items: [] });
+  return guardar(await llamarApi<CarritoApi>(`/carrito/carritos/buscar/usuario/${sesion.id}`));
 }
 
-export function cambiarCantidadCarrito(id: string, cantidad: number): ItemCarrito[] {
-  const items = leerCarrito()
-    .map((item) => (item.id === id ? { ...item, cantidad } : item))
-    .filter((item) => item.cantidad > 0);
-  guardarCarrito(items);
-  return items;
+export function agregarAlCarrito(productoId: string, cantidad = 1): Promise<ItemCarrito[]> {
+  return enCola(async () => {
+    const datos = await llamarApi<CarritoApi>(`${rutaUsuario()}/agregar`, {
+      metodo: "POST",
+      cuerpo: { productoId: Number(productoId), cantidad },
+    });
+    return guardar(datos);
+  });
 }
 
-export function eliminarDelCarrito(id: string): ItemCarrito[] {
-  return cambiarCantidadCarrito(id, 0);
+export function cambiarCantidadCarrito(productoId: string, cantidad: number): Promise<ItemCarrito[]> {
+  return enCola(async () => {
+    const datos = await llamarApi<CarritoApi>(`${rutaUsuario()}/actualizar/${productoId}`, {
+      metodo: "PUT",
+      cuerpo: { cantidad },
+    });
+    return guardar(datos);
+  });
 }
 
-export function vaciarCarrito(): void {
-  guardarCarrito([]);
+export function eliminarDelCarrito(productoId: string): Promise<ItemCarrito[]> {
+  return enCola(async () => {
+    const datos = await llamarApi<CarritoApi>(`${rutaUsuario()}/eliminar/${productoId}`, { metodo: "DELETE" });
+    return guardar(datos);
+  });
 }
 
-export function calcularTotalCarrito(items = leerCarrito()): number {
+export function vaciarCarrito(): Promise<ItemCarrito[]> {
+  return enCola(async () => {
+    await llamarApi<void>(`${rutaUsuario()}/vaciar`, { metodo: "DELETE" });
+    return guardar({ items: [] });
+  });
+}
+
+export function calcularTotalCarrito(items = carrito): number {
   return items.reduce((total, item) => total + item.precio * item.cantidad, 0);
 }
 
-export function calcularCantidadCarrito(items = leerCarrito()): number {
+export function calcularCantidadCarrito(items = carrito): number {
   return items.reduce((total, item) => total + item.cantidad, 0);
 }

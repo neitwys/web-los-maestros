@@ -1,89 +1,81 @@
 import { useState } from "react";
 import CampoFormulario from "../moleculas/CampoFormulario";
-import CampoSelect from "../moleculas/CampoSelect";
-import type { RolUsuario, Usuario } from "../../data/usuariosData";
-import { obtenerComunas, regionesData } from "../../data/regionesData";
+import type { Usuario } from "../../data/usuariosData";
 import {
   errorClave,
   errorCorreo,
   errorNombre,
   errorRun,
+  errorTelefonoObligatorio,
   errorTextoObligatorio,
 } from "../../utils/validaciones";
 
+export interface DatosUsuario {
+  run: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  telefono: string;
+  clave: string;
+}
+
 interface FormularioUsuarioProps {
-  usuario?: Usuario;                       // Si viene, el formulario está en modo edición
-  onGuardar: (datos: Usuario) => void;     // Se llama solo con datos válidos
+  usuario?: Usuario;
+  onGuardar: (datos: DatosUsuario) => void | Promise<void>;
   onCancelar?: () => void;
 }
 
 interface Valores {
   run: string;
-  nombre: string;
-  apellidos: string;
   correo: string;
-  clave: string;
   rol: string;
-  fechaNac: string;
-  region: string;
-  comuna: string;
-  direccion: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  clave: string;
 }
 
 type Campo = keyof Valores;
 type Errores = Record<Campo, string>;
 
-const ROLES: RolUsuario[] = ["Administrador", "Cliente"];
-const NOMBRES_REGIONES = regionesData.map((r) => r.region);
-
-const valoresVacios: Valores = {
-  run: "", nombre: "", apellidos: "", correo: "", clave: "", rol: "",
-  fechaNac: "", region: "", comuna: "", direccion: "",
+const sinErrores: Errores = {
+  run: "", correo: "", rol: "", nombre: "", apellido: "", telefono: "", clave: "",
 };
 
-const sinErrores: Errores = { ...valoresVacios };
-
 function desdeUsuario(u?: Usuario): Valores {
-  if (!u) return valoresVacios;
-  return { ...u, clave: "", fechaNac: u.fechaNac ?? "" };
-}
-
-// La fecha de nacimiento es opcional, pero si se ingresa no puede ser futura
-function errorFechaNac(valor: string): string {
-  if (valor === "") return "";
-  const hoy = new Date().toISOString().slice(0, 10);
-  return valor > hoy ? "La fecha de nacimiento no puede ser futura." : "";
+  if (!u) return { ...sinErrores };
+  return {
+    run: u.run,
+    correo: u.correo,
+    rol: u.rol,
+    nombre: u.nombre,
+    apellido: u.apellido ?? "",
+    telefono: u.telefono,
+    clave: "",
+  };
 }
 
 function calcularError(campo: Campo, v: Valores, editando: boolean): string {
   switch (campo) {
     case "run":
       return errorRun(v.run);
-    case "nombre":
-      return errorNombre(v.nombre);
-    case "apellidos":
-      return errorTextoObligatorio(v.apellidos, "Apellidos", 100);
     case "correo":
       return errorCorreo(v.correo);
-    case "clave":
-      return !editando ? errorClave(v.clave) : v.clave === "" ? "" : errorClave(v.clave);
     case "rol":
-      return errorTextoObligatorio(v.rol, "Rol", 20);
-    case "fechaNac":
-      return errorFechaNac(v.fechaNac);
-    case "region":
-      return errorTextoObligatorio(v.region, "Región", 60);
-    case "comuna":
-      return errorTextoObligatorio(v.comuna, "Comuna", 60);
-    case "direccion":
-      return errorTextoObligatorio(v.direccion, "Dirección", 100);
+      return "";
+    case "nombre":
+      return errorNombre(v.nombre);
+    case "apellido":
+      return v.apellido.trim() === "" ? "" : errorTextoObligatorio(v.apellido, "Apellido", 100);
+    case "telefono":
+      return errorTelefonoObligatorio(v.telefono);
+    case "clave":
+      return editando ? "" : errorClave(v.clave);
   }
 }
 
-// Organismo: formulario para crear (sin "usuario") o editar (con "usuario") un usuario.
 function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuarioProps) {
   const editando = usuario !== undefined;
-
   const [valores, setValores] = useState<Valores>(() => desdeUsuario(usuario));
   const [errores, setErrores] = useState<Errores>(sinErrores);
   const [hayErrores, setHayErrores] = useState(false);
@@ -94,20 +86,15 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
 
   const cambiarCampo = (campo: Campo, valor: string) => {
     const nuevos = { ...valores, [campo]: valor };
-    // Al cambiar la región, la comuna elegida deja de ser válida y se vuelve a elegir
-    if (campo === "region") nuevos.comuna = "";
-
     setValores(nuevos);
     setHayErrores(false);
-
     if (errores[campo] !== "") validarCampo(campo, nuevos);
-    if (campo === "region") setErrores((previo) => ({ ...previo, comuna: "" }));
   };
 
-  const enviar = (e: React.FormEvent<HTMLFormElement>) => {
+  const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const campos = Object.keys(valoresVacios) as Campo[];
+    const campos = Object.keys(sinErrores) as Campo[];
     const nuevosErrores = { ...sinErrores };
     campos.forEach((campo) => {
       nuevosErrores[campo] = calcularError(campo, valores, editando);
@@ -119,26 +106,18 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
       return;
     }
 
-    const datos: Usuario = {
+    await onGuardar({
       run: valores.run.trim(),
       nombre: valores.nombre.trim(),
-      apellidos: valores.apellidos.trim(),
-      correo: valores.correo.trim().toLowerCase(),
-      ...(valores.clave !== "" ? { clave: valores.clave.trim() } : {}),
-      rol: valores.rol as RolUsuario,
-      region: valores.region,
-      comuna: valores.comuna,
-      direccion: valores.direccion.trim(),
-    };
-    if (valores.fechaNac !== "") datos.fechaNac = valores.fechaNac;
+      apellido: valores.apellido.trim(),
+      correo: valores.correo.trim(),
+      telefono: valores.telefono.trim(),
+      clave: valores.clave,
+    });
 
-    onGuardar(datos);
-
-    // Al crear, el formulario queda limpio para ingresar otro usuario
-    if (!editando) setValores(valoresVacios);
+    if (!editando) setValores(desdeUsuario());
   };
 
-  // Atajo para no repetir las props comunes de cada campo
   const campo = (nombre: Campo) => ({
     id: `usr-${nombre}`,
     valor: valores[nombre],
@@ -151,51 +130,33 @@ function FormularioUsuario({ usuario, onGuardar, onCancelar }: FormularioUsuario
     <form onSubmit={enviar} noValidate>
       <div className="row">
         <div className="col-12 col-md-4">
-          <CampoFormulario {...campo("run")} etiqueta="RUN" placeholder="12345678-K" maxLength={10}
-            deshabilitado={editando} obligatorio />
+          <CampoFormulario {...campo("run")} etiqueta="RUN" placeholder="12345678-5" maxLength={12} deshabilitado={editando} obligatorio />
         </div>
         <div className="col-12 col-md-4">
           <CampoFormulario {...campo("nombre")} etiqueta="Nombre" maxLength={50} obligatorio />
         </div>
         <div className="col-12 col-md-4">
-          <CampoFormulario {...campo("apellidos")} etiqueta="Apellidos" maxLength={100} obligatorio />
+          <CampoFormulario {...campo("apellido")} etiqueta="Apellido (opcional)" maxLength={100} />
         </div>
       </div>
 
       <div className="row">
         <div className="col-12 col-md-6">
-          <CampoFormulario {...campo("correo")} etiqueta="Correo electrónico" tipo="email"
-            placeholder="correo@ejemplo.com" maxLength={100} obligatorio />
+          <CampoFormulario {...campo("correo")} etiqueta="Correo electrónico" tipo="email" maxLength={100} deshabilitado={editando} obligatorio />
         </div>
+        {editando ? (
+          <div className="col-12 col-md-3">
+            <CampoFormulario {...campo("rol")} etiqueta="Rol" deshabilitado obligatorio />
+          </div>
+        ) : (
+          <div className="col-12 col-md-3">
+            <CampoFormulario {...campo("clave")} etiqueta="Contraseña" tipo="password" placeholder="6 a 50 caracteres" maxLength={50} obligatorio />
+          </div>
+        )}
         <div className="col-12 col-md-3">
-          <CampoSelect {...campo("rol")} etiqueta="Rol" opciones={ROLES} textoVacio="Seleccione rol..." obligatorio />
-        </div>
-        <div className="col-12 col-md-3">
-          <CampoFormulario {...campo("fechaNac")} etiqueta="Fecha de nacimiento (opcional)" tipo="date" />
+          <CampoFormulario {...campo("telefono")} etiqueta="Teléfono" placeholder="Ej: +56912345678" maxLength={20} obligatorio />
         </div>
       </div>
-
-      <CampoFormulario
-        {...campo("clave")}
-        etiqueta={editando ? "Nueva contraseña (opcional)" : "Contraseña"}
-        tipo="password"
-        placeholder={editando ? "Dejar vacío para conservarla" : "4 a 10 caracteres"}
-        maxLength={10}
-        obligatorio={!editando}
-      />
-
-      <div className="row">
-        <div className="col-12 col-md-6">
-          <CampoSelect {...campo("region")} etiqueta="Región" opciones={NOMBRES_REGIONES}
-            textoVacio="Seleccione región..." obligatorio />
-        </div>
-        <div className="col-12 col-md-6">
-          <CampoSelect {...campo("comuna")} etiqueta="Comuna" opciones={obtenerComunas(valores.region)}
-            textoVacio="Seleccione comuna..." deshabilitado={valores.region === ""} obligatorio />
-        </div>
-      </div>
-
-      <CampoFormulario {...campo("direccion")} etiqueta="Dirección" maxLength={100} obligatorio />
 
       {hayErrores && (
         <div className="alert alert-danger" role="alert">

@@ -1,60 +1,97 @@
-import { type Producto, productosData } from '../data/productosData';
+import type { Producto } from "../data/productosData";
+import { ErrorApi, llamarApi } from "./api";
 
-export type ProductoNuevo = Omit<Producto, 'id'>;
+export type ProductoNuevo = Omit<Producto, "id">;
 
-let productos: Producto[] = [...productosData];
-
-export function obtenerProductos(): Producto[] {
-  return [...productos];
+interface ProductoApi {
+  id: number;
+  codigo: string;
+  nombre: string;
+  marca: string;
+  unidad: string;
+  descripcion: string | null;
+  precio: number;
+  stock: number;
+  imagenUrl: string | null;
+  categoriaNombre: string;
 }
 
-export function obtenerProductoPorId(id: string): Producto | undefined {
-  return productos.find((p) => p.id === id || p.codigo === id);
+interface CategoriaApi {
+  id: number;
+  nombre: string;
 }
 
+const RUTA = "/catalogo/productos";
 
-function generarId(): string {
-  const mayor = productos.reduce((max, p) => {
-    const coincidencia = /^FER-(\d+)$/.exec(p.id);
-    return coincidencia ? Math.max(max, Number(coincidencia[1])) : max;
-  }, 0);
-  return `FER-${String(mayor + 1).padStart(3, '0')}`;
-}
-
-export function crearProducto(datos: ProductoNuevo): Producto {
-  const codigoIngresado = datos.codigo.trim();
-
-  if (codigoIngresado !== '' && obtenerProductoPorId(codigoIngresado)) {
-    throw new Error('Ya existe un producto con ese código.');
-  }
-
-  const nuevoId = generarId();
-
-  const nuevoProducto: Producto = {
-    ...datos,
-    id: nuevoId,
-    codigo: codigoIngresado || nuevoId,
+function aProducto(p: ProductoApi): Producto {
+  return {
+    id: String(p.id),
+    codigo: p.codigo,
+    nombre: p.nombre,
+    categoria: p.categoriaNombre,
+    marca: p.marca,
+    unidad: p.unidad,
+    descripcion: p.descripcion ?? "",
+    precio: p.precio,
+    stock: p.stock,
+    imagen: p.imagenUrl ?? "",
   };
-
-  productos = [...productos, nuevoProducto];
-  return nuevoProducto;
 }
 
-export function actualizarProducto(id: string, cambios: Partial<ProductoNuevo>): Producto | undefined {
-  const existente = obtenerProductoPorId(id);
-  if (!existente) return undefined;
+async function aCuerpo(datos: ProductoNuevo) {
+  const categorias = await llamarApi<CategoriaApi[]>("/catalogo/categorias/listar");
+  const categoria = categorias.find((c) => c.nombre === datos.categoria);
+  if (!categoria) throw new ErrorApi(400, "La categoría seleccionada no existe.");
 
-  const actualizado: Producto = { ...existente, ...cambios };
-  productos = productos.map((p) => (p.id === id ? actualizado : p));
-  return actualizado;
+  return {
+    codigo: datos.codigo,
+    nombre: datos.nombre,
+    marca: datos.marca,
+    unidad: datos.unidad,
+    descripcion: datos.descripcion,
+    precio: datos.precio,
+    stock: datos.stock,
+    imagenUrl: datos.imagen,
+    categoriaId: categoria.id,
+    activo: true,
+  };
 }
 
-export function eliminarProducto(id: string): boolean {
-  const totalAntes = productos.length;
-  productos = productos.filter((p) => p.id !== id);
-  return productos.length < totalAntes;
+export async function obtenerProductos(): Promise<Producto[]> {
+  const productos = await llamarApi<ProductoApi[]>(`${RUTA}/listar`);
+  return productos.map(aProducto);
 }
 
-export function reiniciarProductos(): void {
-  productos = [...productosData];
+export async function obtenerProductoPorId(id: string): Promise<Producto | undefined> {
+  try {
+    return aProducto(await llamarApi<ProductoApi>(`${RUTA}/buscar/${id}`));
+  } catch (error) {
+    if (error instanceof ErrorApi && error.estado === 404) return undefined;
+    throw error;
+  }
+}
+
+export async function obtenerCategorias(): Promise<string[]> {
+  const categorias = await llamarApi<CategoriaApi[]>("/catalogo/categorias/listar");
+  return categorias.map((c) => c.nombre);
+}
+
+export async function crearProducto(datos: ProductoNuevo): Promise<Producto> {
+  const creado = await llamarApi<ProductoApi>(`${RUTA}/crear`, {
+    metodo: "POST",
+    cuerpo: await aCuerpo(datos),
+  });
+  return aProducto(creado);
+}
+
+export async function actualizarProducto(id: string, datos: ProductoNuevo): Promise<Producto> {
+  const actualizado = await llamarApi<ProductoApi>(`${RUTA}/actualizar/${id}`, {
+    metodo: "PUT",
+    cuerpo: await aCuerpo(datos),
+  });
+  return aProducto(actualizado);
+}
+
+export function eliminarProducto(id: string): Promise<void> {
+  return llamarApi<void>(`${RUTA}/eliminar/${id}`, { metodo: "DELETE" });
 }

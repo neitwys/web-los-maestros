@@ -1,21 +1,21 @@
 import { useState } from "react";
 import CampoFormulario from "../moleculas/CampoFormulario";
+import CampoSelect from "../moleculas/CampoSelect";
 import type { Producto } from "../../data/productosData";
 import type { ProductoNuevo } from "../../services/productoService";
 import { errorPrecio, errorStock, errorTextoObligatorio } from "../../utils/validaciones";
 
 interface FormularioProductoProps {
-  producto?: Producto;                         // Si viene, el formulario está en modo edición
-  onGuardar: (datos: ProductoNuevo) => void;   // Se llama solo con datos válidos
+  producto?: Producto;
+  categorias: string[];
+  onGuardar: (datos: ProductoNuevo) => void;
   onCancelar?: () => void;
 }
 
-// Todos los campos se manejan como texto; precio y stock se convierten a número al guardar
 interface Valores {
   codigo: string;
   nombre: string;
   categoria: string;
-  subcategoria: string;
   marca: string;
   precio: string;
   stock: string;
@@ -28,12 +28,12 @@ type Campo = keyof Valores;
 type Errores = Record<Campo, string>;
 
 const sinErrores: Errores = {
-  codigo: "", nombre: "", categoria: "", subcategoria: "", marca: "",
+  codigo: "", nombre: "", categoria: "", marca: "",
   precio: "", stock: "", unidad: "", descripcion: "", imagen: "",
 };
 
 const valoresVacios: Valores = {
-  codigo: "", nombre: "", categoria: "", subcategoria: "", marca: "",
+  codigo: "", nombre: "", categoria: "", marca: "",
   precio: "", stock: "", unidad: "", descripcion: "", imagen: "",
 };
 
@@ -43,7 +43,6 @@ function desdeProducto(p?: Producto): Valores {
     codigo: p.codigo,
     nombre: p.nombre,
     categoria: p.categoria,
-    subcategoria: p.subcategoria,
     marca: p.marca,
     precio: String(p.precio),
     stock: String(p.stock),
@@ -56,14 +55,11 @@ function desdeProducto(p?: Producto): Valores {
 function calcularError(campo: Campo, v: Valores): string {
   switch (campo) {
     case "codigo":
-      // El código es opcional al crear: si se deja vacío, el servicio genera uno
-      return v.codigo.trim() === "" ? "" : errorTextoObligatorio(v.codigo, "Código", 20);
+      return errorTextoObligatorio(v.codigo, "Código", 20);
     case "nombre":
       return errorTextoObligatorio(v.nombre, "Nombre", 80);
     case "categoria":
       return errorTextoObligatorio(v.categoria, "Categoría", 40);
-    case "subcategoria":
-      return errorTextoObligatorio(v.subcategoria, "Subcategoría", 40);
     case "marca":
       return errorTextoObligatorio(v.marca, "Marca", 40);
     case "precio":
@@ -79,8 +75,7 @@ function calcularError(campo: Campo, v: Valores): string {
   }
 }
 
-// Organismo: formulario para crear (sin "producto") o editar (con "producto") un producto.
-function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProductoProps) {
+function FormularioProducto({ producto, categorias, onGuardar, onCancelar }: FormularioProductoProps) {
   const editando = producto !== undefined;
 
   const [valores, setValores] = useState<Valores>(() => desdeProducto(producto));
@@ -95,7 +90,6 @@ function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProdu
     const nuevos = { ...valores, [campo]: valor };
     setValores(nuevos);
     setHayErrores(false);
-    // Si el campo ya mostraba un error, se revalida mientras el usuario corrige
     if (errores[campo] !== "") validarCampo(campo, nuevos);
   };
 
@@ -118,7 +112,6 @@ function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProdu
       codigo: valores.codigo.trim(),
       nombre: valores.nombre.trim(),
       categoria: valores.categoria.trim(),
-      subcategoria: valores.subcategoria.trim(),
       marca: valores.marca.trim(),
       precio: Number(valores.precio),
       stock: Number(valores.stock),
@@ -127,11 +120,9 @@ function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProdu
       imagen: valores.imagen.trim(),
     });
 
-    // Al crear, el formulario queda limpio para ingresar otro producto
     if (!editando) setValores(valoresVacios);
   };
 
-  // Atajo para no repetir las props comunes de cada campo
   const campo = (nombre: Campo) => ({
     id: `prod-${nombre}`,
     valor: valores[nombre],
@@ -144,8 +135,8 @@ function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProdu
     <form onSubmit={enviar} noValidate>
       <div className="row">
         <div className="col-12 col-md-4">
-          <CampoFormulario {...campo("codigo")} etiqueta={editando ? "Código" : "Código (opcional)"}
-            placeholder="Ej: FER-100" maxLength={20} deshabilitado={editando} />
+          <CampoFormulario {...campo("codigo")} etiqueta="Código" placeholder="Ej: FER-100"
+            maxLength={20} deshabilitado={editando} obligatorio />
         </div>
         <div className="col-12 col-md-8">
           <CampoFormulario {...campo("nombre")} etiqueta="Nombre" maxLength={80} obligatorio />
@@ -153,13 +144,11 @@ function FormularioProducto({ producto, onGuardar, onCancelar }: FormularioProdu
       </div>
 
       <div className="row">
-        <div className="col-12 col-md-4">
-          <CampoFormulario {...campo("categoria")} etiqueta="Categoría" maxLength={40} obligatorio />
+        <div className="col-12 col-md-6">
+          <CampoSelect {...campo("categoria")} etiqueta="Categoría" opciones={categorias}
+            textoVacio="Seleccione categoría..." obligatorio />
         </div>
-        <div className="col-12 col-md-4">
-          <CampoFormulario {...campo("subcategoria")} etiqueta="Subcategoría" maxLength={40} obligatorio />
-        </div>
-        <div className="col-12 col-md-4">
+        <div className="col-12 col-md-6">
           <CampoFormulario {...campo("marca")} etiqueta="Marca" maxLength={40} obligatorio />
         </div>
       </div>

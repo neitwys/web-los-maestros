@@ -1,58 +1,40 @@
-import { type Usuario, usuariosData } from "../data/usuariosData";
+import type { Usuario } from "../data/usuariosData";
+import { llamarApi } from "./api";
 
-export type UsuarioCambios = Partial<Omit<Usuario, "run">>;
-
-// Fuente de datos simulada en memoria
-let usuarios: Usuario[] = [...usuariosData];
-
-/** Deja el RUN sin puntos ni guion y en mayúsculas (ej: 12.345.678-k -> 12345678K). */
-export function normalizarRun(run: string): string {
-  return run.replace(/[^0-9kK]/g, "").toUpperCase();
+export interface DatosRegistroApi {
+  nombre: string;
+  apellido?: string;
+  run: string;
+  correo: string;
+  contrasena: string;
+  telefono: string;
 }
 
-/** READ: todos los usuarios */
-export function obtenerUsuarios(): Usuario[] {
-  return [...usuarios];
+export function registrarUsuario(datos: DatosRegistroApi): Promise<Usuario> {
+  return llamarApi<Usuario>("/autenticacion/auth/registro", {
+    metodo: "POST",
+    cuerpo: datos,
+    sinToken: true,
+  });
 }
 
-/** READ: un usuario por su RUN */
-export function obtenerUsuarioPorRun(run: string): Usuario | undefined {
-  const buscado = normalizarRun(run);
-  return usuarios.find((u) => u.run === buscado);
+export function obtenerUsuarios(): Promise<Usuario[]> {
+  return llamarApi<Usuario[]>("/autenticacion/usuarios/listar");
 }
 
-/** CREATE: agrega un usuario. Lanza un error si el RUN ya está registrado. */
-export function crearUsuario(datos: Usuario): Usuario {
-  const run = normalizarRun(datos.run);
-
-  if (obtenerUsuarioPorRun(run)) {
-    throw new Error("Ya existe un usuario con ese RUN.");
-  }
-
-  const nuevo: Usuario = { ...datos, run };
-  usuarios = [...usuarios, nuevo];
-  return nuevo;
+export interface UsuarioCambios {
+  nombre: string;
+  apellido: string;
+  telefono: string;
 }
 
-/** UPDATE: modifica los datos de un usuario (el RUN no se puede cambiar). */
-export function actualizarUsuario(run: string, cambios: UsuarioCambios): Usuario | undefined {
-  const existente = obtenerUsuarioPorRun(run);
-  if (!existente) return undefined;
-
-  const actualizado: Usuario = { ...existente, ...cambios };
-  usuarios = usuarios.map((u) => (u.run === existente.run ? actualizado : u));
-  return actualizado;
+export function actualizarUsuario(id: number, cambios: UsuarioCambios): Promise<Usuario> {
+  return llamarApi<Usuario>(`/autenticacion/usuarios/actualizar/${id}`, {
+    metodo: "PUT",
+    cuerpo: cambios,
+  });
 }
 
-/** DELETE: elimina un usuario. Devuelve true si se eliminó. */
-export function eliminarUsuario(run: string): boolean {
-  const buscado = normalizarRun(run);
-  const totalAntes = usuarios.length;
-  usuarios = usuarios.filter((u) => u.run !== buscado);
-  return usuarios.length < totalAntes;
-}
-
-/** RESET: vuelve a los datos iniciales (útil en las pruebas). */
-export function reiniciarUsuarios(): void {
-  usuarios = [...usuariosData];
+export function eliminarUsuario(id: number): Promise<void> {
+  return llamarApi<void>(`/autenticacion/usuarios/eliminar/${id}`, { metodo: "DELETE" });
 }

@@ -5,6 +5,7 @@ import {
   errorNombre,
   errorRun,
   errorCorreo,
+  errorTelefonoObligatorio,
   errorClave,
   errorConfirmarClave,
   errorTerminos,
@@ -14,6 +15,7 @@ export interface DatosRegistro {
   nombre: string;
   run: string;
   correo: string;
+  telefono: string;
   clave: string;
   confirmarClave: string;
   terminos: boolean;
@@ -21,7 +23,7 @@ export interface DatosRegistro {
 
 interface FormularioRegistroProps {
   // Se llama solo cuando todos los campos son válidos. La página decide qué hacer (ej: redirigir).
-  onRegistrar?: (datos: DatosRegistro) => void;
+  onRegistrar?: (datos: DatosRegistro) => void | Promise<void>;
 }
 
 type Campo = keyof DatosRegistro;
@@ -31,6 +33,7 @@ const datosVacios: DatosRegistro = {
   nombre: "",
   run: "",
   correo: "",
+  telefono: "",
   clave: "",
   confirmarClave: "",
   terminos: false,
@@ -40,6 +43,7 @@ const sinErrores: Errores = {
   nombre: "",
   run: "",
   correo: "",
+  telefono: "",
   clave: "",
   confirmarClave: "",
   terminos: "",
@@ -54,6 +58,8 @@ function calcularError(campo: Campo, datos: DatosRegistro): string {
       return errorRun(datos.run);
     case "correo":
       return errorCorreo(datos.correo);
+    case "telefono":
+      return errorTelefonoObligatorio(datos.telefono);
     case "clave":
       return errorClave(datos.clave);
     case "confirmarClave":
@@ -68,6 +74,7 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
   const [datos, setDatos] = useState<DatosRegistro>(datosVacios);
   const [errores, setErrores] = useState<Errores>(sinErrores);
   const [estado, setEstado] = useState<"inicial" | "error" | "exito">("inicial");
+  const [errorServidor, setErrorServidor] = useState("");
 
   const validarCampo = (campo: Campo, actuales: DatosRegistro = datos) => {
     setErrores((previo) => ({ ...previo, [campo]: calcularError(campo, actuales) }));
@@ -84,7 +91,7 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
     if (campo === "clave" && errores.confirmarClave !== "") validarCampo("confirmarClave", nuevos);
   };
 
-  const enviar = (e: React.FormEvent<HTMLFormElement>) => {
+  const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const campos = Object.keys(datosVacios) as Campo[];
@@ -100,7 +107,15 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
       return;
     }
 
-    onRegistrar?.(datos);
+    try {
+      await onRegistrar?.(datos);
+    } catch (error) {
+      setErrorServidor(error instanceof Error ? error.message : "No se pudo completar el registro.");
+      setEstado("error");
+      return;
+    }
+
+    setErrorServidor("");
     setDatos(datosVacios);
     setEstado("exito");
   };
@@ -146,6 +161,19 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
         obligatorio
       />
 
+      <CampoFormulario
+        id="regTelefono"
+        etiqueta="Teléfono"
+        tipo="tel"
+        valor={datos.telefono}
+        onCambiar={(v) => cambiarCampo("telefono", v)}
+        onBlur={() => validarCampo("telefono")}
+        placeholder="+56 9 1234 5678"
+        maxLength={15}
+        error={errores.telefono}
+        obligatorio
+      />
+
       <div className="row">
         <div className="col-12 col-md-6">
           <CampoFormulario
@@ -155,8 +183,8 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
             valor={datos.clave}
             onCambiar={(v) => cambiarCampo("clave", v)}
             onBlur={() => validarCampo("clave")}
-            placeholder="4 a 10 caracteres"
-            maxLength={10}
+            placeholder="6 a 50 caracteres"
+            maxLength={50}
             error={errores.clave}
             obligatorio
           />
@@ -170,7 +198,7 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
             onCambiar={(v) => cambiarCampo("confirmarClave", v)}
             onBlur={() => validarCampo("confirmarClave")}
             placeholder="Repite tu contraseña"
-            maxLength={10}
+            maxLength={50}
             error={errores.confirmarClave}
             obligatorio
           />
@@ -187,7 +215,7 @@ function FormularioRegistro({ onRegistrar }: FormularioRegistroProps) {
 
       {estado === "error" && (
         <div className="alert alert-danger" role="alert">
-          Por favor verifica los campos resaltados en rojo.
+          {errorServidor !== "" ? errorServidor : "Por favor verifica los campos resaltados en rojo."}
         </div>
       )}
       {estado === "exito" && (

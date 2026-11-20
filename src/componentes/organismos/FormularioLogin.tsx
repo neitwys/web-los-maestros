@@ -29,7 +29,7 @@ function FormularioLogin({ onIngresar, prefijoId = "login" }: FormularioLoginPro
     if (errores.clave !== "") setErrores((previo) => ({ ...previo, clave: errorClave(valor) }));
   };
 
-  const enviar = (e: React.FormEvent<HTMLFormElement>) => {
+  const enviar = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const nuevosErrores = { correo: errorCorreo(correo), clave: errorClave(clave) };
@@ -37,7 +37,7 @@ function FormularioLogin({ onIngresar, prefijoId = "login" }: FormularioLoginPro
     if (nuevosErrores.correo !== "" || nuevosErrores.clave !== "") return;
 
     // Los campos tienen formato válido: ahora el servicio revisa las credenciales
-    const resultado = iniciarSesion(correo, clave);
+    const resultado = await iniciarSesion(correo, clave);
     if (!resultado.ok) {
       setErrorLogin(resultado.error);
       return;
@@ -71,7 +71,7 @@ function FormularioLogin({ onIngresar, prefijoId = "login" }: FormularioLoginPro
         onCambiar={cambiarClave}
         onBlur={() => setErrores((previo) => ({ ...previo, clave: errorClave(clave) }))}
         placeholder="Contraseña"
-        maxLength={10}
+        maxLength={50}
         error={errores.clave}
       />
 

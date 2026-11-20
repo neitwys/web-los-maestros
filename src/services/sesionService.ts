@@ -1,69 +1,89 @@
-import type { RolUsuario } from "../data/usuariosData";
-import { obtenerUsuarios } from "./usuarioService";
-import { errorClave } from "../utils/validaciones";
+import type { RolUsuario, Usuario } from "../data/usuariosData";
+import { CLAVE_SESION, ErrorApi, EVENTO_SESION, llamarApi } from "./api";
+
+export { EVENTO_SESION };
 
 export interface Sesion {
+  token: string;
+  id: number;
   correo: string;
   rol: RolUsuario;
-  fecha: string; // Fecha y hora de inicio de sesión (formato ISO)
-  nombre?: string;
+  nombre: string;
+  fecha: string;
 }
 
 export type ResultadoLogin =
   | { ok: true; sesion: Sesion; error?: string }
   | { ok: false; error: string; sesion?: Sesion };
 
-  
-const CLAVE_STORAGE = "sesionActiva";
-export const EVENTO_SESION = "sesion-actualizada";
-export const CORREO_ADMIN = "admin@losmaestros.cl";
-const CLAVE_ADMIN = "1234";
-
-/** Inicia sesión según las reglas de la tienda y guarda la sesión en localStorage. */
-export function iniciarSesion(correo: string, clave: string): ResultadoLogin {
-  const correoLimpio = correo.trim().toLowerCase();
-  const claveLimpia = clave.trim();
-
-  let rol: RolUsuario;
-
-  if (correoLimpio === CORREO_ADMIN) {
-    if (claveLimpia !== CLAVE_ADMIN) {
-      return { ok: false, error: "Contraseña de administrador incorrecta." };
-    }
-    rol = "Administrador";
-  } else {
-    const error = errorClave(claveLimpia);
-    if (error !== "") return { ok: false, error };
-
-    const usuario = obtenerUsuarios().find((u) => u.correo.toLowerCase() === correoLimpio);
-    if (!usuario || usuario.clave !== claveLimpia) {
-      return { ok: false, error: "Correo o contraseña incorrectos." };
-    }
-    rol = usuario.rol;
-  }
-
-  const usuario = obtenerUsuarios().find((u) => u.correo.toLowerCase() === correoLimpio);
-  const nombre = rol === "Administrador" ? "Admin" : usuario?.nombre ?? correoLimpio.split("@")[0];
-  const sesion: Sesion = { correo: correoLimpio, rol, fecha: new Date().toISOString(), nombre };
-  localStorage.setItem(CLAVE_STORAGE, JSON.stringify(sesion));
-  window.dispatchEvent(new CustomEvent(EVENTO_SESION));
-  return { ok: true, sesion };
+interface RespuestaLogin {
+  token: string;
+  usuario: Usuario;
 }
 
-/** Devuelve la sesión activa, o null si no hay sesión (o los datos guardados están dañados). */
+function tokenExpirado(token: string): boolean {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4)));
+    return typeof exp !== "number" || exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function esSesionValida(dato: unknown): dato is Sesion {
+  if (typeof dato !== "object" || dato === null) return false;
+  const sesion = dato as Partial<Sesion>;
+  return (
+    typeof sesion.token === "string" &&
+    typeof sesion.id === "number" &&
+    typeof sesion.correo === "string" &&
+    (sesion.rol === "ADMIN" || sesion.rol === "CLIENTE") &&
+    !tokenExpirado(sesion.token)
+  );
+}
+
+export async function iniciarSesion(correo: string, clave: string): Promise<ResultadoLogin> {
+  try {
+    const respuesta = await llamarApi<RespuestaLogin>("/autenticacion/auth/login", {
+      metodo: "POST",
+      cuerpo: { correo: correo.trim().toLowerCase(), contrasena: clave },
+      sinToken: true,
+    });
+
+    const { usuario } = respuesta;
+    const sesion: Sesion = {
+      token: respuesta.token,
+      id: usuario.id,
+      correo: usuario.correo,
+      rol: usuario.rol,
+      nombre: usuario.nombre,
+      fecha: new Date().toISOString(),
+    };
+    localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+    window.dispatchEvent(new CustomEvent(EVENTO_SESION));
+    return { ok: true, sesion };
+  } catch (error) {
+    return { ok: false, error: error instanceof ErrorApi ? error.message : "No se pudo iniciar sesión." };
+  }
+}
+
 export function obtenerSesion(): Sesion | null {
-  const guardada = localStorage.getItem(CLAVE_STORAGE);
+  const guardada = localStorage.getItem(CLAVE_SESION);
   if (!guardada) return null;
 
   try {
-    return JSON.parse(guardada) as Sesion;
+    const dato: unknown = JSON.parse(guardada);
+    if (esSesionValida(dato)) return dato;
   } catch {
     return null;
   }
+
+  localStorage.removeItem(CLAVE_SESION);
+  return null;
 }
 
-/** Cierra la sesión eliminando los datos guardados. */
 export function cerrarSesion(): void {
-  localStorage.removeItem(CLAVE_STORAGE);
+  localStorage.removeItem(CLAVE_SESION);
   window.dispatchEvent(new CustomEvent(EVENTO_SESION));
 }

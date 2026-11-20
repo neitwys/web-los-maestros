@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Hero, { type Diapositiva } from "../componentes/organismos/Hero";
 import CardProducto from "../componentes/moleculas/CardProducto";
+import type { Producto } from "../data/productosData";
 import { obtenerProductos } from "../services/productoService";
 
 const diapositivas: Diapositiva[] = [
@@ -21,8 +23,13 @@ const diapositivas: Diapositiva[] = [
 const CANTIDAD_DESTACADOS = 4;
 
 function Inicio() {
-    // Los destacados son los primeros productos del catálogo (como en la página original)
-    const destacados = obtenerProductos().slice(0, CANTIDAD_DESTACADOS);
+    const [destacados, setDestacados] = useState<Producto[]>([]);
+
+    useEffect(() => {
+        obtenerProductos()
+            .then((productos) => setDestacados(productos.slice(0, CANTIDAD_DESTACADOS)))
+            .catch(() => setDestacados([]));
+    }, []);
 
     return (
         <>
@@ -51,6 +58,7 @@ function Inicio() {
                                 descripcion={p.descripcion}
                                 precio={p.precio}
                                 imagen={p.imagen}
+                                unidad={p.unidad}
                             />
                         </div>
                     ))}

@@ -6,7 +6,6 @@ interface TablaUsuariosProps {
   onEliminar: (usuario: Usuario) => void;
 }
 
-// Organismo presentacional: lista los usuarios en una tabla. No modifica datos, solo avisa qué botón se pulsó.
 function TablaUsuarios({ usuarios, onEditar, onEliminar }: TablaUsuariosProps) {
   if (usuarios.length === 0) {
     return (
@@ -24,26 +23,24 @@ function TablaUsuarios({ usuarios, onEditar, onEliminar }: TablaUsuariosProps) {
             <th scope="col">RUN</th>
             <th scope="col">Nombre</th>
             <th scope="col">Correo</th>
+            <th scope="col">Teléfono</th>
             <th scope="col">Rol</th>
-            <th scope="col">Región / Comuna</th>
             <th scope="col" className="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {usuarios.map((usuario) => {
-            const nombreCompleto = `${usuario.nombre} ${usuario.apellidos}`;
+            const nombreCompleto = usuario.apellido ? `${usuario.nombre} ${usuario.apellido}` : usuario.nombre;
             return (
-              <tr key={usuario.run}>
+              <tr key={usuario.id}>
                 <td>{usuario.run}</td>
                 <td>{nombreCompleto}</td>
                 <td>{usuario.correo}</td>
+                <td>{usuario.telefono}</td>
                 <td>
-                  <span className={`badge ${usuario.rol === "Administrador" ? "bg-dark" : "bg-secondary"}`}>
+                  <span className={`badge ${usuario.rol === "ADMIN" ? "bg-dark" : "bg-secondary"}`}>
                     {usuario.rol}
                   </span>
-                </td>
-                <td>
-                  {usuario.comuna}, {usuario.region}
                 </td>
                 <td className="text-center text-nowrap">
                   <button

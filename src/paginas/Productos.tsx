@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Producto } from "../data/productosData";
 import { obtenerProductos } from "../services/productoService";
 import CatalogoProductos from "../componentes/organismos/CatalogoProductos";
 
 function Productos() {
-  const [productos] = useState<Producto[]>(() => obtenerProductos());
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    obtenerProductos()
+      .then(setProductos)
+      .catch((e) => setError(e instanceof Error ? e.message : "No se pudieron cargar los productos."));
+  }, []);
 
   return (
     <div className="container py-4">
@@ -15,7 +22,12 @@ function Productos() {
         </p>
       </div>
 
-      {/* Renderiza el buscador, filtro de categorías y la grilla con los productos */}
+      
+      {error !== "" && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
       <CatalogoProductos productos={productos} />
     </div>
   );
