@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import FormularioLogin from '../componentes/organismos/FormularioLogin';
 import {

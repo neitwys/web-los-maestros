@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import FormularioRegistro, { type DatosRegistro } from '../componentes/organismos/FormularioRegistro';
 import {

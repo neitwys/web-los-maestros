@@ -1,16 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Producto } from "../data/productosData";
 import { obtenerProductos } from "../services/productoService";
 import CatalogoProductos from "../componentes/organismos/CatalogoProductos";
 
 function Productos() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    // Obtiene los productos cargados en la ferretería
-    const datos = obtenerProductos();
-    setProductos(datos);
-  }, []);
+  const [productos] = useState<Producto[]>(() => obtenerProductos());
 
   return (
     <div className="container py-4">

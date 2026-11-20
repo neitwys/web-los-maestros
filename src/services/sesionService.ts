@@ -24,7 +24,7 @@ export function iniciarSesion(correo: string, clave: string): ResultadoLogin {
   const correoLimpio = correo.trim().toLowerCase();
   const claveLimpia = clave.trim();
 
-  let rol: RolUsuario = "Cliente";
+  let rol: RolUsuario;
 
   if (correoLimpio === CORREO_ADMIN) {
     if (claveLimpia !== CLAVE_ADMIN) {
