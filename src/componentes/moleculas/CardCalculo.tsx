@@ -42,7 +42,7 @@ function CardCalculo({
         <div className="text-center text-md-end">
           <span className="text-muted small d-block">Costo Total Estimado</span>
           <span className="fs-5 fw-bold text-success d-block mb-2">
-            \${totalCLP.toLocaleString("es-CL")} CLP
+            ${totalCLP.toLocaleString("es-CL")} CLP
           </span>
           <button
             className="btn btn-outline-dark btn-sm fw-bold"
